@@ -194,12 +194,8 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
   const [originalContent, setOriginalContent] = useState<SiteContent>(() => loadContent(defaultContent))
 
   useEffect(() => {
-    const saved = loadContent<SiteContent | null>(null)
-    if (saved) {
-      setContent(saved)
-      setOriginalContent(saved)
-    }
-  }, [])
+    saveContent(content)
+  }, [content])
 
   const updateHero = (updates: Partial<SiteContent['hero']>) => {
     setContent(prev => ({ ...prev, hero: { ...prev.hero, ...updates } }))
