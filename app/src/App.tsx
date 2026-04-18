@@ -141,7 +141,7 @@ function App() {
   return (
     <AuthProvider>
       <ContentProvider>
-        <Router>
+        <Router basename={import.meta.env.BASE_URL}>
           <RouterContent />
         </Router>
       </ContentProvider>
