@@ -11,34 +11,36 @@ const ExpertiseEditor = () => {
 
   const updateArea = (index: number, field: string, value: string) => {
     const newAreas = [...expertise.areas]
-    newAreas[index] = { ...newAreas[index], [field]: value }
-    updateExpertise({ areas: newAreas })
+    const area = newAreas[index]
+    if (!area) return
+    newAreas[index] = { ...area, [field]: value }
+    updateExpertise({ areas: newAreas as typeof expertise.areas })
   }
 
   const updateFeature = (areaIndex: number, featureIndex: number, value: string) => {
     const newAreas = [...expertise.areas]
-    const newFeatures = [...newAreas[areaIndex].features]
+    const area = newAreas[areaIndex]
+    if (!area) return
+    const newFeatures = [...area.features]
     newFeatures[featureIndex] = value
-    newAreas[areaIndex] = { ...newAreas[areaIndex], features: newFeatures }
-    updateExpertise({ areas: newAreas })
+    newAreas[areaIndex] = { ...area, features: newFeatures }
+    updateExpertise({ areas: newAreas as typeof expertise.areas })
   }
 
   const addFeature = (areaIndex: number) => {
     const newAreas = [...expertise.areas]
-    newAreas[areaIndex] = {
-      ...newAreas[areaIndex],
-      features: [...newAreas[areaIndex].features, 'New Feature'],
-    }
-    updateExpertise({ areas: newAreas })
+    const area = newAreas[areaIndex]
+    if (!area) return
+    newAreas[areaIndex] = { ...area, features: [...area.features, 'New Feature'] }
+    updateExpertise({ areas: newAreas as typeof expertise.areas })
   }
 
   const removeFeature = (areaIndex: number, featureIndex: number) => {
     const newAreas = [...expertise.areas]
-    newAreas[areaIndex] = {
-      ...newAreas[areaIndex],
-      features: newAreas[areaIndex].features.filter((_, i) => i !== featureIndex),
-    }
-    updateExpertise({ areas: newAreas })
+    const area = newAreas[areaIndex]
+    if (!area) return
+    newAreas[areaIndex] = { ...area, features: area.features.filter((_, i) => i !== featureIndex) }
+    updateExpertise({ areas: newAreas as typeof expertise.areas })
   }
 
   return (

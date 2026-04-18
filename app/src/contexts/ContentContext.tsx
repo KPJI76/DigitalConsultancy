@@ -1,60 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
+import type { Article, Video, SiteContent } from '@/types/content'
+import { loadContent, saveContent } from '@/lib/storage'
+import { sanitizeArticleHtml, sanitizeYoutubeUrl } from '@/lib/sanitize'
 
-export interface Article {
-  id: string
-  slug: string
-  title: string
-  excerpt: string
-  content: string
-  category: string
-  date: string
-  readTime: string
-  image: string
-  tags: string[]
-  likes: number
-  views: number
-  published: boolean
-}
-
-export interface Video {
-  id: string
-  title: string
-  description: string
-  youtubeUrl: string
-  thumbnail: string
-  category: string
-  date: string
-  duration: string
-  views: number
-  likes: number
-  published: boolean
-}
-
-export interface SiteContent {
-  hero: {
-    headline: string[]
-    subheadline: string
-    ctaPrimary: string
-    ctaSecondary: string
-  }
-  about: {
-    title: string
-    description: string[]
-    stats: { value: string; label: string }[]
-  }
-  expertise: {
-    title: string
-    subtitle: string
-    areas: {
-      title: string
-      subtitle: string
-      description: string
-      features: string[]
-    }[]
-  }
-  articles: Article[]
-  videos: Video[]
-}
+export type { Article, Video, SiteContent }
 
 const defaultContent: SiteContent = {
   hero: {
@@ -125,7 +74,7 @@ const defaultContent: SiteContent = {
       slug: 'future-of-agentic-ai-field-service',
       title: 'The Future of Agentic AI in Field Service',
       excerpt: 'How autonomous AI agents are revolutionizing field service operations, from predictive maintenance to intelligent dispatching.',
-      content: `<p>The field service industry is on the brink of a major transformation with the advent of Agentic AI...</p>`,
+      content: '<p>The field service industry is on the brink of a major transformation with the advent of Agentic AI...</p>',
       category: 'AI & Technology',
       date: 'Jan 15, 2026',
       readTime: '8 min read',
@@ -140,7 +89,7 @@ const defaultContent: SiteContent = {
       slug: 'sap-pm-to-salesforce-fsl-migration-guide',
       title: 'Migrating from SAP PM to Salesforce FSL: A Complete Guide',
       excerpt: 'A strategic roadmap for organizations looking to transition their maintenance operations from SAP to Salesforce Field Service Lightning.',
-      content: `<p>Migrating from SAP Plant Maintenance to Salesforce Field Service Lightning is a significant undertaking...</p>`,
+      content: '<p>Migrating from SAP Plant Maintenance to Salesforce Field Service Lightning is a significant undertaking...</p>',
       category: 'SAP & Salesforce',
       date: 'Jan 10, 2026',
       readTime: '12 min read',
@@ -155,7 +104,7 @@ const defaultContent: SiteContent = {
       slug: 'resilient-supply-chains-predictive-analytics',
       title: 'Building Resilient Supply Chains with Predictive Analytics',
       excerpt: 'Leveraging data and AI to create supply chains that can withstand disruptions and adapt to changing market conditions.',
-      content: `<p>The past few years have taught us that supply chain resilience is no longer optional...</p>`,
+      content: '<p>The past few years have taught us that supply chain resilience is no longer optional...</p>',
       category: 'Supply Chain',
       date: 'Jan 5, 2026',
       readTime: '10 min read',
@@ -239,45 +188,35 @@ interface ContentContextType {
 const ContentContext = createContext<ContentContextType | undefined>(undefined)
 
 export function ContentProvider({ children }: { children: React.ReactNode }) {
-  const [content, setContent] = useState<SiteContent>(defaultContent)
+  const [content, setContent] = useState<SiteContent>(() => loadContent(defaultContent))
   const [previewMode, setPreviewMode] = useState(false)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
-  const [originalContent, setOriginalContent] = useState<SiteContent>(defaultContent)
+  const [originalContent, setOriginalContent] = useState<SiteContent>(() => loadContent(defaultContent))
 
   useEffect(() => {
-    // Load saved content from localStorage
-    const saved = localStorage.getItem('ec_content')
+    const saved = loadContent<SiteContent | null>(null)
     if (saved) {
-      const parsed = JSON.parse(saved)
-      setContent(parsed)
-      setOriginalContent(parsed)
+      setContent(saved)
+      setOriginalContent(saved)
     }
   }, [])
 
-  const saveToStorage = (newContent: SiteContent) => {
-    localStorage.setItem('ec_content', JSON.stringify(newContent))
-  }
-
   const updateHero = (updates: Partial<SiteContent['hero']>) => {
-    const newContent = { ...content, hero: { ...content.hero, ...updates } }
-    setContent(newContent)
+    setContent(prev => ({ ...prev, hero: { ...prev.hero, ...updates } }))
     setHasUnsavedChanges(true)
   }
 
   const updateAbout = (updates: Partial<SiteContent['about']>) => {
-    const newContent = { ...content, about: { ...content.about, ...updates } }
-    setContent(newContent)
+    setContent(prev => ({ ...prev, about: { ...prev.about, ...updates } }))
     setHasUnsavedChanges(true)
   }
 
   const updateExpertise = (updates: Partial<SiteContent['expertise']>) => {
-    const newContent = { ...content, expertise: { ...content.expertise, ...updates } }
-    setContent(newContent)
+    setContent(prev => ({ ...prev, expertise: { ...prev.expertise, ...updates } }))
     setHasUnsavedChanges(true)
   }
 
-  // Generate URL-friendly slug from title
-  const generateSlug = (title: string): string => {
+  function generateSlug(title: string): string {
     return title
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
@@ -286,135 +225,127 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
   }
 
   const addArticle = (article: Omit<Article, 'id' | 'slug' | 'likes' | 'views'>) => {
-    const slug = generateSlug(article.title)
-    // Ensure unique slug
-    let uniqueSlug = slug
-    let counter = 1
-    while (content.articles.find(a => a.slug === uniqueSlug)) {
-      uniqueSlug = `${slug}-${counter}`
-      counter++
-    }
-    
-    const newArticle: Article = {
-      ...article,
-      id: `article-${Date.now()}`,
-      slug: uniqueSlug,
-      likes: 0,
-      views: 0,
-    }
-    const newContent = { ...content, articles: [...content.articles, newArticle] }
-    setContent(newContent)
+    setContent(prev => {
+      const slug = generateSlug(article.title)
+      let uniqueSlug = slug
+      let counter = 1
+      while (prev.articles.some(a => a.slug === uniqueSlug)) {
+        uniqueSlug = `${slug}-${counter}`
+        counter++
+      }
+      const newArticle: Article = {
+        ...article,
+        content: sanitizeArticleHtml(article.content),
+        id: `article-${Date.now()}`,
+        slug: uniqueSlug,
+        likes: 0,
+        views: 0,
+      }
+      return { ...prev, articles: [...prev.articles, newArticle] }
+    })
     setHasUnsavedChanges(true)
   }
 
   const updateArticle = (id: string, updates: Partial<Article>) => {
-    const newArticles = content.articles.map(a => a.id === id ? { ...a, ...updates } : a)
-    const newContent = { ...content, articles: newArticles }
-    setContent(newContent)
+    const sanitizedUpdates = updates.content !== undefined
+      ? { ...updates, content: sanitizeArticleHtml(updates.content) }
+      : updates
+    setContent(prev => ({
+      ...prev,
+      articles: prev.articles.map(a => a.id === id ? { ...a, ...sanitizedUpdates } : a),
+    }))
     setHasUnsavedChanges(true)
   }
 
   const deleteArticle = (id: string) => {
-    const newArticles = content.articles.filter(a => a.id !== id)
-    const newContent = { ...content, articles: newArticles }
-    setContent(newContent)
+    setContent(prev => ({ ...prev, articles: prev.articles.filter(a => a.id !== id) }))
     setHasUnsavedChanges(true)
   }
 
   const toggleArticlePublish = (id: string) => {
-    const article = content.articles.find(a => a.id === id)
-    if (article) {
-      updateArticle(id, { published: !article.published })
-    }
+    setContent(prev => ({
+      ...prev,
+      articles: prev.articles.map(a => a.id === id ? { ...a, published: !a.published } : a),
+    }))
+    setHasUnsavedChanges(true)
   }
 
   const incrementArticleViews = (id: string) => {
-    const article = content.articles.find(a => a.id === id)
-    if (article) {
-      const newArticles = content.articles.map(a => 
-        a.id === id ? { ...a, views: a.views + 1 } : a
-      )
-      setContent({ ...content, articles: newArticles })
-    }
+    setContent(prev => ({
+      ...prev,
+      articles: prev.articles.map(a => a.id === id ? { ...a, views: a.views + 1 } : a),
+    }))
   }
 
   const incrementArticleLikes = (id: string) => {
-    const article = content.articles.find(a => a.id === id)
-    if (article) {
-      const newArticles = content.articles.map(a => 
-        a.id === id ? { ...a, likes: a.likes + 1 } : a
-      )
-      setContent({ ...content, articles: newArticles })
-    }
+    setContent(prev => ({
+      ...prev,
+      articles: prev.articles.map(a => a.id === id ? { ...a, likes: a.likes + 1 } : a),
+    }))
   }
 
-  const getPublishedArticles = () => {
-    return content.articles.filter(a => a.published)
-  }
+  const getPublishedArticles = (): Article[] => content.articles.filter(a => a.published)
 
-  const getArticleBySlug = (slug: string) => {
-    return content.articles.find(a => a.slug === slug && a.published)
-  }
+  const getArticleBySlug = (slug: string): Article | undefined =>
+    content.articles.find(a => a.slug === slug && a.published)
 
   const addVideo = (video: Omit<Video, 'id' | 'likes' | 'views'>) => {
+    const safeUrl = sanitizeYoutubeUrl(video.youtubeUrl)
+    if (!safeUrl) return
     const newVideo: Video = {
       ...video,
+      youtubeUrl: safeUrl,
       id: `video-${Date.now()}`,
       likes: 0,
       views: 0,
     }
-    const newContent = { ...content, videos: [...content.videos, newVideo] }
-    setContent(newContent)
+    setContent(prev => ({ ...prev, videos: [...prev.videos, newVideo] }))
     setHasUnsavedChanges(true)
   }
 
   const updateVideo = (id: string, updates: Partial<Video>) => {
-    const newVideos = content.videos.map(v => v.id === id ? { ...v, ...updates } : v)
-    const newContent = { ...content, videos: newVideos }
-    setContent(newContent)
+    const sanitizedUpdates =
+      updates.youtubeUrl !== undefined
+        ? { ...updates, youtubeUrl: sanitizeYoutubeUrl(updates.youtubeUrl) ?? updates.youtubeUrl }
+        : updates
+    setContent(prev => ({
+      ...prev,
+      videos: prev.videos.map(v => v.id === id ? { ...v, ...sanitizedUpdates } : v),
+    }))
     setHasUnsavedChanges(true)
   }
 
   const deleteVideo = (id: string) => {
-    const newVideos = content.videos.filter(v => v.id !== id)
-    const newContent = { ...content, videos: newVideos }
-    setContent(newContent)
+    setContent(prev => ({ ...prev, videos: prev.videos.filter(v => v.id !== id) }))
     setHasUnsavedChanges(true)
   }
 
   const toggleVideoPublish = (id: string) => {
-    const video = content.videos.find(v => v.id === id)
-    if (video) {
-      updateVideo(id, { published: !video.published })
-    }
+    setContent(prev => ({
+      ...prev,
+      videos: prev.videos.map(v => v.id === id ? { ...v, published: !v.published } : v),
+    }))
+    setHasUnsavedChanges(true)
   }
 
   const incrementVideoViews = (id: string) => {
-    const video = content.videos.find(v => v.id === id)
-    if (video) {
-      const newVideos = content.videos.map(v => 
-        v.id === id ? { ...v, views: v.views + 1 } : v
-      )
-      setContent({ ...content, videos: newVideos })
-    }
+    setContent(prev => ({
+      ...prev,
+      videos: prev.videos.map(v => v.id === id ? { ...v, views: v.views + 1 } : v),
+    }))
   }
 
   const incrementVideoLikes = (id: string) => {
-    const video = content.videos.find(v => v.id === id)
-    if (video) {
-      const newVideos = content.videos.map(v => 
-        v.id === id ? { ...v, likes: v.likes + 1 } : v
-      )
-      setContent({ ...content, videos: newVideos })
-    }
+    setContent(prev => ({
+      ...prev,
+      videos: prev.videos.map(v => v.id === id ? { ...v, likes: v.likes + 1 } : v),
+    }))
   }
 
-  const getPublishedVideos = () => {
-    return content.videos.filter(v => v.published)
-  }
+  const getPublishedVideos = (): Video[] => content.videos.filter(v => v.published)
 
   const saveChanges = () => {
-    saveToStorage(content)
+    saveContent(content)
     setOriginalContent(content)
     setHasUnsavedChanges(false)
   }
@@ -425,32 +356,34 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <ContentContext.Provider value={{
-      content,
-      updateHero,
-      updateAbout,
-      updateExpertise,
-      addArticle,
-      updateArticle,
-      deleteArticle,
-      toggleArticlePublish,
-      incrementArticleViews,
-      incrementArticleLikes,
-      getPublishedArticles,
-      getArticleBySlug,
-      addVideo,
-      updateVideo,
-      deleteVideo,
-      toggleVideoPublish,
-      incrementVideoViews,
-      incrementVideoLikes,
-      getPublishedVideos,
-      previewMode,
-      setPreviewMode,
-      hasUnsavedChanges,
-      saveChanges,
-      discardChanges,
-    }}>
+    <ContentContext.Provider
+      value={{
+        content,
+        updateHero,
+        updateAbout,
+        updateExpertise,
+        addArticle,
+        updateArticle,
+        deleteArticle,
+        toggleArticlePublish,
+        incrementArticleViews,
+        incrementArticleLikes,
+        getPublishedArticles,
+        getArticleBySlug,
+        addVideo,
+        updateVideo,
+        deleteVideo,
+        toggleVideoPublish,
+        incrementVideoViews,
+        incrementVideoLikes,
+        getPublishedVideos,
+        previewMode,
+        setPreviewMode,
+        hasUnsavedChanges,
+        saveChanges,
+        discardChanges,
+      }}
+    >
       {children}
     </ContentContext.Provider>
   )

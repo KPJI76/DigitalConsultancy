@@ -4,6 +4,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { ChevronDown, ArrowRight } from 'lucide-react'
 import * as THREE from 'three'
 import { useContent } from '../contexts/ContentContext'
+import { SafeHtml } from '../components/SafeHtml'
 
 // WebGL Fluid Background Component
 const FluidBackground = () => {
@@ -20,11 +21,13 @@ const FluidBackground = () => {
   useFrame((state) => {
     if (meshRef.current) {
       const material = meshRef.current.material as THREE.ShaderMaterial
-      material.uniforms.uTime.value = state.clock.elapsedTime
-      
-      // Smooth mouse following
-      material.uniforms.uMouse.value.x += (mouseRef.current.x - material.uniforms.uMouse.value.x) * 0.05
-      material.uniforms.uMouse.value.y += (mouseRef.current.y - material.uniforms.uMouse.value.y) * 0.05
+      const uTime = material.uniforms['uTime']
+      const uMouse = material.uniforms['uMouse']
+      if (uTime) uTime.value = state.clock.elapsedTime
+      if (uMouse) {
+        uMouse.value.x += (mouseRef.current.x - uMouse.value.x) * 0.05
+        uMouse.value.y += (mouseRef.current.y - uMouse.value.y) * 0.05
+      }
     }
   })
 
@@ -219,9 +222,11 @@ const Hero = () => {
           <div ref={headlineRef} className="mb-8">
             {hero.headline.map((line, index) => (
               <div key={index} className="headline-line overflow-hidden">
-                <h1 
+                <SafeHtml
+                  html={line}
+                  mode="text"
+                  tag="h1"
                   className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white tracking-tight"
-                  dangerouslySetInnerHTML={{ __html: line }}
                 />
               </div>
             ))}

@@ -145,8 +145,8 @@ const Expertise = () => {
             className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
           >
             {expertise.areas.map((area, index) => {
-              const Icon = iconMap[Object.keys(iconMap)[index]] || Settings
-              const colorClass = colorMap[index] || colorMap[0]
+              const Icon = iconMap[Object.keys(iconMap)[index] ?? ''] ?? Settings
+              const colorClass = colorMap[index] ?? colorMap[0] ?? 'from-cyan/20 to-cyan/5'
               
               return (
                 <div

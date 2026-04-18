@@ -3,6 +3,7 @@ import { gsap } from 'gsap'
 import { Play, Clock, Eye, Heart, X, Youtube, Calendar } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useContent } from '../contexts/ContentContext'
+import { sanitizeYoutubeUrl } from '@/lib/sanitize'
 
 const Videos = () => {
   const sectionRef = useRef<HTMLElement>(null)
@@ -46,21 +47,15 @@ const Videos = () => {
 
   const isLiked = (videoId: string) => user?.likedArticles?.includes(videoId) || false
 
-  const getYoutubeEmbedUrl = (url: string) => {
-    // Extract video ID from various YouTube URL formats
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/
-    const match = url.match(regExp)
-    return match && match[2].length === 11 ? `https://www.youtube.com/embed/${match[2]}` : url
-  }
-
   const getYoutubeVideoId = (url: string): string | null => {
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/
     const match = url.match(regExp)
-    return match && match[2].length === 11 ? match[2] : null
+    const id = match?.[2]
+    return id && id.length === 11 ? id : null
   }
 
   const getYoutubeThumbnail = (url: string): string | null => {
-    const videoId = getYoutubeVideoId(url)
+    const videoId = getYoutubeVideoId(url) ?? sanitizeYoutubeUrl(url)?.split('/embed/')[1]?.split('?')[0]
     return videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : null
   }
 
@@ -182,13 +177,20 @@ const Videos = () => {
           <div className="w-full max-w-4xl bg-navy border border-white/10 rounded-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
             {/* Video Player */}
             <div className="relative aspect-video bg-black">
-              <iframe
-                src={getYoutubeEmbedUrl(selectedVideo.youtubeUrl)}
-                title={selectedVideo.title}
-                className="absolute inset-0 w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
+              {sanitizeYoutubeUrl(selectedVideo.youtubeUrl) ? (
+                <iframe
+                  src={sanitizeYoutubeUrl(selectedVideo.youtubeUrl) ?? ''}
+                  title={selectedVideo.title}
+                  className="absolute inset-0 w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  sandbox="allow-scripts allow-same-origin allow-presentation"
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center text-white/40">
+                  Invalid video URL
+                </div>
+              )}
             </div>
             
             {/* Video Info */}

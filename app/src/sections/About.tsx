@@ -203,7 +203,7 @@ const About = () => {
           className="grid grid-cols-2 lg:grid-cols-4 gap-6 mt-20"
         >
           {about.stats.map((stat, index) => {
-            const Icon = iconMap[Object.keys(iconMap)[index]] || Briefcase
+            const Icon = iconMap[Object.keys(iconMap)[index] ?? ''] ?? Briefcase
             return (
               <div 
                 key={index}

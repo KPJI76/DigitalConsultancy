@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { changePasswordSchema } from '@/schemas/auth.schema'
 import { User, Mail, Phone, Lock, Save, CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react'
 
 const Profile = () => {
@@ -48,28 +49,25 @@ const Profile = () => {
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault()
     setPasswordMessage(null)
-    
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setPasswordMessage({ type: 'error', text: 'New passwords do not match.' })
+
+    const result = changePasswordSchema.safeParse(passwordData)
+    if (!result.success) {
+      const msg = result.error.issues[0]?.message ?? 'Validation error'
+      setPasswordMessage({ type: 'error', text: msg })
       return
     }
-    
-    if (passwordData.newPassword.length < 6) {
-      setPasswordMessage({ type: 'error', text: 'New password must be at least 6 characters.' })
-      return
-    }
-    
+
     setIsChangingPassword(true)
-    
+
     const success = await changePassword(passwordData.currentPassword, passwordData.newPassword)
-    
+
     if (success) {
       setPasswordMessage({ type: 'success', text: 'Password changed successfully!' })
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' })
     } else {
       setPasswordMessage({ type: 'error', text: 'Current password is incorrect.' })
     }
-    
+
     setIsChangingPassword(false)
   }
 

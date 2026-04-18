@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { Calendar, Clock, Eye, Heart, Share2, ArrowLeft, Tag, Copy, Check } from 'lucide-react'
 import Navigation from '../sections/Navigation'
 import Footer from '../sections/Footer'
+import { SafeHtml } from '../components/SafeHtml'
 
 const Article = () => {
   const { slug } = useParams<{ slug: string }>()
@@ -175,9 +176,10 @@ const Article = () => {
       {/* Article Content */}
       <article className="py-16 bg-navy">
         <div className="max-w-3xl mx-auto px-6 lg:px-8">
-          <div 
+          <SafeHtml
+            html={article.content}
+            mode="article"
             className="prose prose-invert prose-lg max-w-none"
-            dangerouslySetInnerHTML={{ __html: article.content }}
           />
           
           {/* Share at bottom */}

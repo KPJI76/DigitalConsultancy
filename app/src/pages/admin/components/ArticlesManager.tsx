@@ -31,7 +31,7 @@ const emptyArticle = {
   excerpt: '',
   content: '',
   category: '',
-  date: new Date().toISOString().split('T')[0],
+  date: new Date().toISOString().split('T')[0] ?? '',
   readTime: '5 min read',
   image: '',
   tags: [] as string[],

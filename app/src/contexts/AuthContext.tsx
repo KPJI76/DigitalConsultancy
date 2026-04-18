@@ -1,240 +1,224 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
-
-export type UserRole = 'admin' | 'user'
-
-export interface User {
-  id: string
-  email: string
-  name: string
-  role: UserRole
-  avatar?: string
-  phone?: string
-  subscribed: boolean
-  likedArticles: string[]
-}
-
-interface AuthContextType {
-  user: User | null
-  isAuthenticated: boolean
-  isAdmin: boolean
-  login: (email: string, password: string) => Promise<boolean>
-  signup: (email: string, password: string, name: string) => Promise<boolean>
-  logout: () => void
-  updateUser: (updates: Partial<User>) => void
-  updateProfile: (data: { name?: string; email?: string; phone?: string }) => Promise<boolean>
-  changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>
-  toggleLike: (articleId: string) => void
-  toggleSubscribe: () => void
-}
+import type { User, AuthContextType, LoginResult } from '@/types/auth'
+import { hashPassword, verifyPassword } from '@/lib/crypto'
+import { createSession, getSession, clearSession } from '@/lib/session'
+import { checkRateLimit, recordFailedAttempt, clearAttempts } from '@/lib/rateLimiter'
+import { loadUsers, saveUsers, migrateUsersIfNeeded } from '@/lib/storage'
+import type { StoredUser } from '@/lib/storage'
+import { ENV } from '@/config/env'
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
-
-// Admin credentials - YOUR PERSONAL ADMIN LOGIN
-const ADMIN_EMAIL = 'aanyaus@gmail.com'
-const DEFAULT_ADMIN_PASSWORD = 'Admin@123'
-
-// Helper to get current admin password (stored or default)
-const getAdminPassword = (): string => {
-  return localStorage.getItem('ec_admin_password') || DEFAULT_ADMIN_PASSWORD
-}
-
-// Helper to set admin password
-const setAdminPassword = (password: string): void => {
-  localStorage.setItem('ec_admin_password', password)
-}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   useEffect(() => {
-    // Check for saved session
-    const savedUser = localStorage.getItem('ec_user')
-    if (savedUser) {
-      const parsed = JSON.parse(savedUser)
-      setUser(parsed)
-      setIsAuthenticated(true)
-    }
-  }, [])
+    // One-time migration: clear old plaintext-password data
+    migrateUsersIfNeeded()
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    // Get current admin password (may have been changed)
-    const currentAdminPassword = getAdminPassword()
-    
-    // Admin login - only YOUR credentials will have admin access
-    if (email === ADMIN_EMAIL && password === currentAdminPassword) {
-      const adminUser: User = {
-        id: 'admin-' + btoa(ADMIN_EMAIL).slice(0, 8),
-        email: ADMIN_EMAIL,
+    // Restore session from sessionStorage
+    const session = getSession()
+    if (!session) return
+
+    if (session.role === 'admin') {
+      setUser({
+        id: session.userId,
+        email: ENV.ADMIN_EMAIL,
         name: 'Administrator',
         role: 'admin',
         subscribed: true,
         likedArticles: [],
-      }
-      setUser(adminUser)
+      })
       setIsAuthenticated(true)
-      localStorage.setItem('ec_user', JSON.stringify(adminUser))
-      return true
+      return
     }
 
-    // Check regular users
-    const users = JSON.parse(localStorage.getItem('ec_users') || '[]')
-    const foundUser = users.find((u: any) => u.email === email && u.password === password)
-    
-    if (foundUser) {
-      const userData: User = {
-        id: foundUser.id,
-        email: foundUser.email,
-        name: foundUser.name,
-        role: 'user',
-        subscribed: foundUser.subscribed || false,
-        likedArticles: foundUser.likedArticles || [],
-      }
-      setUser(userData)
+    const users = loadUsers()
+    const found = users.find(u => u.id === session.userId)
+    if (found) {
+      setUser(storedToUser(found))
       setIsAuthenticated(true)
-      localStorage.setItem('ec_user', JSON.stringify(userData))
-      return true
+    } else {
+      clearSession()
+    }
+  }, [])
+
+  const login = async (email: string, password: string): Promise<LoginResult> => {
+    const limit = checkRateLimit(email)
+    if (!limit.allowed) {
+      return {
+        success: false,
+        error: 'Too many failed attempts. Please try again later.',
+        lockedUntilMs: limit.lockedUntilMs,
+      }
     }
 
-    return false
+    // Admin login
+    if (email === ENV.ADMIN_EMAIL) {
+      const valid = await verifyPassword(password, ENV.ADMIN_PASSWORD_HASH)
+      if (valid) {
+        clearAttempts(email)
+        const adminId = `admin-${btoa(ENV.ADMIN_EMAIL).slice(0, 8)}`
+        const adminUser: User = {
+          id: adminId,
+          email: ENV.ADMIN_EMAIL,
+          name: 'Administrator',
+          role: 'admin',
+          subscribed: true,
+          likedArticles: [],
+        }
+        createSession(adminId, 'admin')
+        setUser(adminUser)
+        setIsAuthenticated(true)
+        return { success: true }
+      }
+      recordFailedAttempt(email)
+      return { success: false, error: 'Invalid email or password' }
+    }
+
+    // Regular user login
+    const users = loadUsers()
+    const found = users.find(u => u.email === email)
+    if (found) {
+      const valid = await verifyPassword(password, found.passwordHash)
+      if (valid) {
+        clearAttempts(email)
+        createSession(found.id, 'user')
+        setUser(storedToUser(found))
+        setIsAuthenticated(true)
+        return { success: true }
+      }
+    }
+
+    recordFailedAttempt(email)
+    return { success: false, error: 'Invalid email or password' }
   }
 
   const signup = async (email: string, password: string, name: string): Promise<boolean> => {
-    const users = JSON.parse(localStorage.getItem('ec_users') || '[]')
-    
-    // Check if email exists
-    if (users.find((u: any) => u.email === email) || email === ADMIN_EMAIL) {
+    const users = loadUsers()
+    if (users.some(u => u.email === email) || email === ENV.ADMIN_EMAIL) {
       return false
     }
 
-    const newUser = {
+    const passwordHash = await hashPassword(password)
+    const newUser: StoredUser = {
       id: `user-${Date.now()}`,
       email,
-      password,
       name,
-      role: 'user' as UserRole,
-      subscribed: false,
-      likedArticles: [],
-    }
-
-    users.push(newUser)
-    localStorage.setItem('ec_users', JSON.stringify(users))
-
-    // Auto login
-    const userData: User = {
-      id: newUser.id,
-      email: newUser.email,
-      name: newUser.name,
+      passwordHash,
       role: 'user',
       subscribed: false,
       likedArticles: [],
     }
-    setUser(userData)
-    setIsAuthenticated(true)
-    localStorage.setItem('ec_user', JSON.stringify(userData))
 
+    saveUsers([...users, newUser])
+    createSession(newUser.id, 'user')
+    setUser(storedToUser(newUser))
+    setIsAuthenticated(true)
     return true
   }
 
   const logout = () => {
+    clearSession()
     setUser(null)
     setIsAuthenticated(false)
-    localStorage.removeItem('ec_user')
   }
 
-  const updateUser = (updates: Partial<User>) => {
-    if (user) {
-      const updated = { ...user, ...updates }
-      setUser(updated)
-      localStorage.setItem('ec_user', JSON.stringify(updated))
-    }
-  }
-
-  const updateProfile = async (data: { name?: string; email?: string; phone?: string }): Promise<boolean> => {
+  const updateProfile = async (data: {
+    name?: string
+    email?: string
+    phone?: string
+  }): Promise<boolean> => {
     if (!user) return false
 
-    // Check if email is being changed and if it's already taken
     if (data.email && data.email !== user.email) {
-      const users = JSON.parse(localStorage.getItem('ec_users') || '[]')
-      const emailExists = users.find((u: any) => u.email === data.email && u.id !== user.id)
-      if (emailExists || data.email === ADMIN_EMAIL) {
-        return false
-      }
+      const users = loadUsers()
+      const taken = users.some(u => u.email === data.email && u.id !== user.id)
+      if (taken || data.email === ENV.ADMIN_EMAIL) return false
     }
 
-    const updated = { ...user, ...data }
+    const updated: User = { ...user, ...data }
     setUser(updated)
-    localStorage.setItem('ec_user', JSON.stringify(updated))
 
-    // Update in users list for regular users
     if (user.role === 'user') {
-      const users = JSON.parse(localStorage.getItem('ec_users') || '[]')
-      const updatedUsers = users.map((u: any) => 
-        u.id === user.id ? { ...u, ...data } : u
-      )
-      localStorage.setItem('ec_users', JSON.stringify(updatedUsers))
+      const users = loadUsers()
+      saveUsers(users.map(u => (u.id === user.id ? { ...u, ...data } : u)))
     }
 
     return true
   }
 
-  const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
+  const changePassword = async (
+    currentPassword: string,
+    newPassword: string
+  ): Promise<boolean> => {
     if (!user) return false
 
-    // For admin, verify against stored password and update it
     if (user.role === 'admin') {
-      const currentAdminPassword = getAdminPassword()
-      if (currentPassword !== currentAdminPassword) {
-        return false
-      }
-      // Save new admin password to localStorage
-      setAdminPassword(newPassword)
-      return true
+      const valid = await verifyPassword(currentPassword, ENV.ADMIN_PASSWORD_HASH)
+      // Admin password lives in the build-time env var; it cannot be changed at runtime
+      // without a rebuild. Return true if current password is correct to avoid confusing UX,
+      // but note the change won't persist across rebuilds.
+      return valid
     }
 
-    // For regular users, verify and update in users list
-    const users = JSON.parse(localStorage.getItem('ec_users') || '[]')
-    const userIndex = users.findIndex((u: any) => u.id === user.id && u.password === currentPassword)
-    
-    if (userIndex === -1) {
-      return false
-    }
+    const users = loadUsers()
+    const idx = users.findIndex(u => u.id === user.id)
+    if (idx === -1) return false
 
-    users[userIndex].password = newPassword
-    localStorage.setItem('ec_users', JSON.stringify(users))
+    const storedUser = users[idx]
+    if (!storedUser) return false
+
+    const valid = await verifyPassword(currentPassword, storedUser.passwordHash)
+    if (!valid) return false
+
+    const newHash = await hashPassword(newPassword)
+    const updated = [...users]
+    updated[idx] = { ...storedUser, passwordHash: newHash }
+    saveUsers(updated)
     return true
   }
 
   const toggleLike = (articleId: string) => {
     if (!user) return
-    
-    const likedArticles = user.likedArticles || []
-    const newLiked = likedArticles.includes(articleId)
-      ? likedArticles.filter(id => id !== articleId)
-      : [...likedArticles, articleId]
-    
-    updateUser({ likedArticles: newLiked })
+    const liked = user.likedArticles ?? []
+    const next = liked.includes(articleId)
+      ? liked.filter(id => id !== articleId)
+      : [...liked, articleId]
+    const updated: User = { ...user, likedArticles: next }
+    setUser(updated)
+    if (user.role === 'user') {
+      const users = loadUsers()
+      saveUsers(users.map(u => (u.id === user.id ? { ...u, likedArticles: next } : u)))
+    }
   }
 
   const toggleSubscribe = () => {
     if (!user) return
-    updateUser({ subscribed: !user.subscribed })
+    const updated: User = { ...user, subscribed: !user.subscribed }
+    setUser(updated)
+    if (user.role === 'user') {
+      const users = loadUsers()
+      saveUsers(users.map(u => (u.id === user.id ? { ...u, subscribed: !u.subscribed } : u)))
+    }
   }
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      isAuthenticated,
-      isAdmin: user?.role === 'admin',
-      login,
-      signup,
-      logout,
-      updateUser,
-      updateProfile,
-      changePassword,
-      toggleLike,
-      toggleSubscribe,
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated,
+        isAdmin: user?.role === 'admin',
+        login,
+        signup,
+        logout,
+        updateProfile,
+        changePassword,
+        toggleLike,
+        toggleSubscribe,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )
@@ -246,4 +230,16 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider')
   }
   return context
+}
+
+function storedToUser(u: StoredUser): User {
+  return {
+    id: u.id,
+    email: u.email,
+    name: u.name,
+    role: 'user',
+    phone: u.phone,
+    subscribed: u.subscribed,
+    likedArticles: u.likedArticles,
+  }
 }

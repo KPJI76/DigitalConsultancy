@@ -26,8 +26,10 @@ const AboutEditor = () => {
 
   const updateStat = (index: number, field: 'value' | 'label', value: string) => {
     const newStats = [...about.stats]
-    newStats[index] = { ...newStats[index], [field]: value }
-    updateAbout({ stats: newStats })
+    const stat = newStats[index]
+    if (!stat) return
+    newStats[index] = { ...stat, [field]: value }
+    updateAbout({ stats: newStats as typeof about.stats })
   }
 
   const addStat = () => {
