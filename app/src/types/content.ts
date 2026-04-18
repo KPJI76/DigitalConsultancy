@@ -52,4 +52,11 @@ export interface SiteContent {
   }
   articles: Article[]
   videos: Video[]
+  contact: {
+    email: string
+    phone: string
+    location: string
+    linkedin: string
+    youtube: string
+  }
 }

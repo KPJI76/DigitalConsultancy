@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { useContent } from '@/contexts/ContentContext'
 
 const Contact = () => {
   const sectionRef = useRef<HTMLElement>(null)
@@ -15,9 +16,10 @@ const Contact = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    company: '',
+    subject: '',
     message: '',
   })
+  const { content } = useContent()
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -72,7 +74,7 @@ const Contact = () => {
     
     setIsSubmitting(false)
     setIsSubmitted(true)
-    setFormData({ name: '', email: '', company: '', message: '' })
+    setFormData({ name: '', email: '', subject: '', message: '' })
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -137,29 +139,31 @@ const Contact = () => {
                 </div>
                 <div>
                   <p className="text-white/40 text-sm">Email</p>
-                  <a href="mailto:contact@enterpriseconsult.com" className="text-white hover:text-cyan transition-colors">
-                    contact@enterpriseconsult.com
+                  <a href={`mailto:${content.contact.email}`} className="text-white hover:text-cyan transition-colors">
+                    {content.contact.email}
                   </a>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-cyan/10 flex items-center justify-center">
                   <MapPin className="w-5 h-5 text-cyan" />
                 </div>
                 <div>
                   <p className="text-white/40 text-sm">Location</p>
-                  <p className="text-white">Global - Remote Consulting</p>
+                  <p className="text-white">{content.contact.location}</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-cyan/10 flex items-center justify-center">
                   <Phone className="w-5 h-5 text-cyan" />
                 </div>
                 <div>
-                  <p className="text-white/40 text-sm">Availability</p>
-                  <p className="text-white">Monday - Friday, 9AM - 6PM CET</p>
+                  <p className="text-white/40 text-sm">Phone</p>
+                  <a href={`tel:${content.contact.phone}`} className="text-white hover:text-cyan transition-colors">
+                    {content.contact.phone}
+                  </a>
                 </div>
               </div>
             </div>
@@ -168,24 +172,24 @@ const Contact = () => {
             <div className="reveal-item">
               <p className="text-white/40 text-sm mb-4">Connect on social media</p>
               <div className="flex items-center gap-4">
-                <a 
-                  href="https://linkedin.com"
+                <a
+                  href={content.contact.linkedin}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-white/60 hover:text-cyan hover:bg-cyan/10 transition-all"
                 >
                   <Linkedin size={20} />
                 </a>
-                <a 
-                  href="https://youtube.com"
+                <a
+                  href={content.contact.youtube}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-white/60 hover:text-cyan hover:bg-cyan/10 transition-all"
                 >
                   <Youtube size={20} />
                 </a>
-                <a 
-                  href="mailto:contact@enterpriseconsult.com"
+                <a
+                  href={`mailto:${content.contact.email}`}
                   className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-white/60 hover:text-cyan hover:bg-cyan/10 transition-all"
                 >
                   <Mail size={20} />
@@ -257,17 +261,17 @@ const Contact = () => {
                     />
                   </div>
 
-                  {/* Company */}
+                  {/* Subject */}
                   <div className="space-y-2">
-                    <Label htmlFor="company" className="text-white/80">
-                      Company
+                    <Label htmlFor="subject" className="text-white/80">
+                      Subject
                     </Label>
                     <Input
-                      id="company"
-                      name="company"
-                      value={formData.company}
+                      id="subject"
+                      name="subject"
+                      value={formData.subject}
                       onChange={handleChange}
-                      placeholder="Your Company Ltd."
+                      placeholder="What is this about?"
                       className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-cyan focus:ring-cyan/20"
                     />
                   </div>

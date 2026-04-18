@@ -24,6 +24,7 @@ import AboutEditor from './components/AboutEditor'
 import ArticlesManager from './components/ArticlesManager'
 import ExpertiseEditor from './components/ExpertiseEditor'
 import VideoManager from './components/VideoManager'
+import ContactEditor from './components/ContactEditor'
 
 const AdminDashboard = () => {
   const navigate = useNavigate()
@@ -226,8 +227,8 @@ const AdminDashboard = () => {
             <button
               onClick={() => setActiveTab('videos')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${
-                activeTab === 'videos' 
-                  ? 'bg-cyan/20 text-cyan' 
+                activeTab === 'videos'
+                  ? 'bg-cyan/20 text-cyan'
                   : 'text-white/60 hover:bg-white/5 hover:text-white'
               }`}
             >
@@ -237,6 +238,19 @@ const AdminDashboard = () => {
                 {content.videos.length}
               </span>
               {activeTab === 'videos' && <ChevronRight size={16} className="ml-2" />}
+            </button>
+
+            <button
+              onClick={() => setActiveTab('contact')}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${
+                activeTab === 'contact'
+                  ? 'bg-cyan/20 text-cyan'
+                  : 'text-white/60 hover:bg-white/5 hover:text-white'
+              }`}
+            >
+              <Mail size={18} />
+              <span>Contact Info</span>
+              {activeTab === 'contact' && <ChevronRight size={16} className="ml-auto" />}
             </button>
           </nav>
 
@@ -364,6 +378,7 @@ const AdminDashboard = () => {
           {activeTab === 'expertise' && <ExpertiseEditor />}
           {activeTab === 'articles' && <ArticlesManager />}
           {activeTab === 'videos' && <VideoManager />}
+          {activeTab === 'contact' && <ContactEditor />}
         </main>
       </div>
     </div>

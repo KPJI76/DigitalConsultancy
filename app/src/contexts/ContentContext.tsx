@@ -68,6 +68,13 @@ const defaultContent: SiteContent = {
       },
     ],
   },
+  contact: {
+    email: 'aanyaus@gmail.com',
+    phone: '+91 98765 43210',
+    location: 'Global - Remote Consulting',
+    linkedin: 'https://linkedin.com',
+    youtube: 'https://youtube.com',
+  },
   articles: [
     {
       id: '1',
@@ -163,6 +170,7 @@ interface ContentContextType {
   updateHero: (updates: Partial<SiteContent['hero']>) => void
   updateAbout: (updates: Partial<SiteContent['about']>) => void
   updateExpertise: (updates: Partial<SiteContent['expertise']>) => void
+  updateContact: (updates: Partial<SiteContent['contact']>) => void
   addArticle: (article: Omit<Article, 'id' | 'slug' | 'likes' | 'views'>) => void
   updateArticle: (id: string, updates: Partial<Article>) => void
   deleteArticle: (id: string) => void
@@ -209,6 +217,11 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
 
   const updateExpertise = (updates: Partial<SiteContent['expertise']>) => {
     setContent(prev => ({ ...prev, expertise: { ...prev.expertise, ...updates } }))
+    setHasUnsavedChanges(true)
+  }
+
+  const updateContact = (updates: Partial<SiteContent['contact']>) => {
+    setContent(prev => ({ ...prev, contact: { ...prev.contact, ...updates } }))
     setHasUnsavedChanges(true)
   }
 
@@ -358,6 +371,7 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
         updateHero,
         updateAbout,
         updateExpertise,
+        updateContact,
         addArticle,
         updateArticle,
         deleteArticle,
