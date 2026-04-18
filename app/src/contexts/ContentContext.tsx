@@ -196,10 +196,16 @@ interface ContentContextType {
 const ContentContext = createContext<ContentContextType | undefined>(undefined)
 
 export function ContentProvider({ children }: { children: React.ReactNode }) {
-  const [content, setContent] = useState<SiteContent>(() => loadContent(defaultContent))
+  const [content, setContent] = useState<SiteContent>(() => {
+    const stored = loadContent<Partial<SiteContent>>(defaultContent)
+    return { ...defaultContent, ...stored, contact: { ...defaultContent.contact, ...(stored.contact ?? {}) } }
+  })
   const [previewMode, setPreviewMode] = useState(false)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
-  const [originalContent, setOriginalContent] = useState<SiteContent>(() => loadContent(defaultContent))
+  const [originalContent, setOriginalContent] = useState<SiteContent>(() => {
+    const stored = loadContent<Partial<SiteContent>>(defaultContent)
+    return { ...defaultContent, ...stored, contact: { ...defaultContent.contact, ...(stored.contact ?? {}) } }
+  })
 
   useEffect(() => {
     saveContent(content)
