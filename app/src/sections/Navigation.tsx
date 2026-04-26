@@ -3,16 +3,7 @@ import { gsap } from 'gsap'
 import { Link } from 'react-router-dom'
 import { Menu, X, Linkedin, Youtube, BookOpen, User, LogOut, Heart } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
-
-const navLinks = [
-  { label: 'Home', href: '#hero' },
-  { label: 'About', href: '#about' },
-  { label: 'Expertise', href: '#expertise' },
-  { label: 'Industries', href: '#industries' },
-  { label: 'Insights', href: '#insights' },
-  { label: 'Videos', href: '#videos' },
-  { label: 'Contact', href: '#contact' },
-]
+import { useContent } from '../contexts/ContentContext'
 
 const Navigation = () => {
   const navRef = useRef<HTMLElement>(null)
@@ -20,6 +11,19 @@ const Navigation = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
   const { user, isAuthenticated, isAdmin, logout } = useAuth()
+  const { content } = useContent()
+  const { visibleSections, branding, contact } = content
+
+  // Build nav links dynamically — only include visible sections
+  const navLinks = [
+    { label: branding.navLinks.home,       href: '#hero',       show: visibleSections.hero },
+    { label: branding.navLinks.about,      href: '#about',      show: visibleSections.about },
+    { label: branding.navLinks.expertise,  href: '#expertise',  show: visibleSections.expertise },
+    { label: branding.navLinks.industries, href: '#industries', show: visibleSections.industries },
+    { label: branding.navLinks.insights,   href: '#insights',   show: visibleSections.insights },
+    { label: branding.navLinks.videos,     href: '#videos',     show: visibleSections.videos },
+    { label: branding.navLinks.contact,    href: '#contact',    show: visibleSections.contact },
+  ].filter(l => l.show)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -79,7 +83,7 @@ const Navigation = () => {
                 </svg>
               </div>
               <span className="text-white font-semibold text-lg tracking-tight">
-                Enterprise<span className="text-cyan">Consult</span>
+                {branding.siteNamePrimary}<span className="text-cyan">{branding.siteNameAccent}</span>
               </span>
             </a>
 
@@ -99,17 +103,17 @@ const Navigation = () => {
 
             {/* Right side actions */}
             <div className="hidden lg:flex items-center gap-4">
-              <a 
-                href="https://linkedin.com" 
-                target="_blank" 
+              <a
+                href={contact.linkedin}
+                target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full glass flex items-center justify-center text-white/70 hover:text-cyan hover:border-cyan/50 transition-all"
               >
                 <Linkedin size={18} />
               </a>
-              <a 
-                href="https://youtube.com" 
-                target="_blank" 
+              <a
+                href={contact.youtube}
+                target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full glass flex items-center justify-center text-white/70 hover:text-cyan hover:border-cyan/50 transition-all"
               >
@@ -278,17 +282,17 @@ const Navigation = () => {
           </div>
 
           <div className="flex items-center gap-6 mt-8">
-            <a 
-              href="https://linkedin.com" 
-              target="_blank" 
+            <a
+              href={contact.linkedin}
+              target="_blank"
               rel="noopener noreferrer"
               className="w-12 h-12 rounded-full glass flex items-center justify-center text-white hover:text-cyan transition-colors"
             >
               <Linkedin size={24} />
             </a>
-            <a 
-              href="https://youtube.com" 
-              target="_blank" 
+            <a
+              href={contact.youtube}
+              target="_blank"
               rel="noopener noreferrer"
               className="w-12 h-12 rounded-full glass flex items-center justify-center text-white hover:text-cyan transition-colors"
             >

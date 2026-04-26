@@ -19,6 +19,7 @@ import {
   Youtube,
   Factory,
   Layers,
+  Palette,
 } from 'lucide-react'
 // Youtube is used in VideoManager component
 import HeroEditor from './components/HeroEditor'
@@ -29,6 +30,7 @@ import VideoManager from './components/VideoManager'
 import ContactEditor from './components/ContactEditor'
 import IndustriesEditor from './components/IndustriesEditor'
 import SectionsManager from './components/SectionsManager'
+import BrandingEditor from './components/BrandingEditor'
 
 const AdminDashboard = () => {
   const navigate = useNavigate()
@@ -270,7 +272,19 @@ const AdminDashboard = () => {
               {activeTab === 'contact' && <ChevronRight size={16} className="ml-auto" />}
             </button>
 
-            <div className="pt-2 border-t border-white/10 mt-2">
+            <div className="pt-2 border-t border-white/10 mt-2 space-y-1">
+              <button
+                onClick={() => setActiveTab('branding')}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${
+                  activeTab === 'branding'
+                    ? 'bg-cyan/20 text-cyan'
+                    : 'text-white/60 hover:bg-white/5 hover:text-white'
+                }`}
+              >
+                <Palette size={18} />
+                <span>Branding & Nav</span>
+                {activeTab === 'branding' && <ChevronRight size={16} className="ml-auto" />}
+              </button>
               <button
                 onClick={() => setActiveTab('sections')}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${
@@ -412,6 +426,7 @@ const AdminDashboard = () => {
           {activeTab === 'articles'   && <ArticlesManager />}
           {activeTab === 'videos'     && <VideoManager />}
           {activeTab === 'contact'    && <ContactEditor />}
+          {activeTab === 'branding'   && <BrandingEditor />}
           {activeTab === 'sections'   && <SectionsManager />}
         </main>
       </div>

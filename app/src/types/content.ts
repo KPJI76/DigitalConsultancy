@@ -36,6 +36,20 @@ export interface IndustryItem {
 }
 
 export interface SiteContent {
+  branding: {
+    siteNamePrimary: string
+    siteNameAccent: string
+    siteTagline: string
+    navLinks: {
+      home: string
+      about: string
+      expertise: string
+      industries: string
+      insights: string
+      videos: string
+      contact: string
+    }
+  }
   visibleSections: {
     hero: boolean
     about: boolean

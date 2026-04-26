@@ -6,6 +6,20 @@ import { sanitizeArticleHtml, sanitizeYoutubeUrl } from '@/lib/sanitize'
 export type { Article, Video, SiteContent }
 
 const defaultContent: SiteContent = {
+  branding: {
+    siteNamePrimary: 'Enterprise',
+    siteNameAccent: 'Consult',
+    siteTagline: 'Enterprise Consulting Platform',
+    navLinks: {
+      home: 'Home',
+      about: 'About',
+      expertise: 'Expertise',
+      industries: 'Industries',
+      insights: 'Insights',
+      videos: 'Videos',
+      contact: 'Contact',
+    },
+  },
   visibleSections: {
     hero: true,
     about: true,
@@ -186,6 +200,7 @@ const defaultContent: SiteContent = {
 
 interface ContentContextType {
   content: SiteContent
+  updateBranding: (updates: Partial<SiteContent['branding']>) => void
   updateHero: (updates: Partial<SiteContent['hero']>) => void
   updateAbout: (updates: Partial<SiteContent['about']>) => void
   updateExpertise: (updates: Partial<SiteContent['expertise']>) => void
@@ -222,6 +237,7 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
     return {
       ...defaultContent,
       ...stored,
+      branding: { ...defaultContent.branding, ...(stored.branding ?? {}), navLinks: { ...defaultContent.branding.navLinks, ...(stored.branding?.navLinks ?? {}) } },
       visibleSections: { ...defaultContent.visibleSections, ...(stored.visibleSections ?? {}) },
       industries: { ...defaultContent.industries, ...(stored.industries ?? {}), items: stored.industries?.items ?? defaultContent.industries.items },
       contact: { ...defaultContent.contact, ...(stored.contact ?? {}) },
@@ -240,6 +256,11 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     saveContent(content)
   }, [content])
+
+  const updateBranding = (updates: Partial<SiteContent['branding']>) => {
+    setContent(prev => ({ ...prev, branding: { ...prev.branding, ...updates } }))
+    setHasUnsavedChanges(true)
+  }
 
   const updateHero = (updates: Partial<SiteContent['hero']>) => {
     setContent(prev => ({ ...prev, hero: { ...prev.hero, ...updates } }))
@@ -427,6 +448,7 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
     <ContentContext.Provider
       value={{
         content,
+        updateBranding,
         updateHero,
         updateAbout,
         updateExpertise,
