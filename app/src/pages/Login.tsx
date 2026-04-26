@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -15,6 +15,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [serverError, setServerError] = useState('')
   const [lockoutMs, setLockoutMs] = useState<number | null>(null)
+  const honeypotRef = useRef<HTMLInputElement>(null)
 
   const {
     register,
@@ -23,6 +24,7 @@ const Login = () => {
   } = useForm<LoginInput>({ resolver: zodResolver(loginSchema) })
 
   const onSubmit = async (data: LoginInput) => {
+    if (honeypotRef.current?.value) return   // bot detected
     setServerError('')
     setLockoutMs(null)
 
@@ -70,6 +72,10 @@ const Login = () => {
           className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-8"
           noValidate
         >
+          {/* Honeypot — invisible to humans, filled by bots */}
+          <input ref={honeypotRef} type="text" name="website" tabIndex={-1}
+            aria-hidden="true" autoComplete="off"
+            style={{ position: 'absolute', left: '-9999px', opacity: 0 }} />
           {serverError && (
             <div role="alert" className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
               {serverError}

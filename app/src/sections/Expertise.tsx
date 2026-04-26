@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
-import { Settings, Cloud, Brain, ArrowRight, CheckCircle } from 'lucide-react'
+import { Settings, Cloud, Brain, CheckCircle } from 'lucide-react'
 import { useContent } from '../contexts/ContentContext'
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -187,12 +187,6 @@ const Expertise = () => {
                     ))}
                   </ul>
 
-                  {/* CTA */}
-                  <button className="flex items-center gap-2 text-cyan font-medium group/btn">
-                    <span>Learn More</span>
-                    <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                  </button>
-
                   {/* Hover glow */}
                   <div className="absolute inset-0 rounded-2xl bg-cyan/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                 </div>
@@ -201,20 +195,6 @@ const Expertise = () => {
           </div>
         </div>
 
-        {/* Bottom CTA */}
-        <div className="mt-16 text-center">
-          <p className="text-white/50 mb-4">
-            Looking for a specific solution or technology?
-          </p>
-          <a 
-            href="#contact"
-            onClick={(e) => { e.preventDefault(); document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' }) }}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-cyan text-navy font-semibold rounded-lg hover:bg-white transition-all duration-300 hover:shadow-glow"
-          >
-            <span>Let's Discuss Your Project</span>
-            <ArrowRight size={18} />
-          </a>
-        </div>
       </div>
     </section>
   )
