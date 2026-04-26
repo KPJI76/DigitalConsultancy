@@ -24,6 +24,7 @@ import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Profile from './pages/Profile'
 import Article from './pages/Article'
+import Blog from './pages/Blog'
 import AdminDashboard from './pages/admin/AdminDashboard'
 
 import './App.css'
@@ -133,6 +134,7 @@ const RouterContent = () => {
         }
       />
       <Route path="/article/:slug" element={<Article />} />
+      <Route path="/blog" element={<Blog />} />
     </Routes>
   )
 }

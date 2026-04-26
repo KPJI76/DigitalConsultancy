@@ -181,14 +181,13 @@ const Navigation = () => {
                   >
                     Sign In
                   </Link>
-                  <a 
-                    href="#insights"
-                    onClick={(e) => { e.preventDefault(); scrollToSection('#insights') }}
+                  <Link
+                    to="/blog"
                     className="flex items-center gap-2 px-5 py-2.5 bg-cyan text-navy font-semibold rounded-lg hover:bg-white transition-all duration-300 hover:shadow-glow"
                   >
                     <BookOpen size={16} />
                     <span>Read Blog</span>
-                  </a>
+                  </Link>
                 </div>
               )}
             </div>
