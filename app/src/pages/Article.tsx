@@ -52,7 +52,7 @@ const Article = () => {
   }
 
   const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/article/${article.slug}`
+    const shareUrl = `${window.location.origin}${import.meta.env.BASE_URL}article/${article.slug}`
     
     if (navigator.share) {
       try {
@@ -72,7 +72,7 @@ const Article = () => {
   }
 
   const copyLink = async () => {
-    const shareUrl = `${window.location.origin}/article/${article.slug}`
+    const shareUrl = `${window.location.origin}${import.meta.env.BASE_URL}article/${article.slug}`
     await navigator.clipboard.writeText(shareUrl)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)

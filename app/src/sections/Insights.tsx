@@ -112,7 +112,7 @@ const Insights = () => {
 
   const shareArticle = (article: typeof publishedArticles[0], e: React.MouseEvent) => {
     e.stopPropagation()
-    const shareUrl = `${window.location.origin}/article/${article.slug}`
+    const shareUrl = `${window.location.origin}${import.meta.env.BASE_URL}article/${article.slug}`
     const shareData = {
       title: article.title,
       text: article.excerpt,
@@ -130,7 +130,7 @@ const Insights = () => {
 
   const copyArticleLink = (article: typeof publishedArticles[0], e: React.MouseEvent) => {
     e.stopPropagation()
-    const shareUrl = `${window.location.origin}/article/${article.slug}`
+    const shareUrl = `${window.location.origin}${import.meta.env.BASE_URL}article/${article.slug}`
     navigator.clipboard.writeText(shareUrl)
     setCopiedId(article.id)
     setTimeout(() => setCopiedId(null), 2000)

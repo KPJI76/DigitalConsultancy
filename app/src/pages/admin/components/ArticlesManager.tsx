@@ -48,7 +48,7 @@ const ArticlesManager = () => {
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
   const getArticleUrl = (slug: string) => {
-    return `${window.location.origin}/article/${slug}`
+    return `${window.location.origin}${import.meta.env.BASE_URL}article/${slug}`
   }
 
   const copyArticleLink = (slug: string, id: string) => {
