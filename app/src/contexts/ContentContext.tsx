@@ -1,11 +1,30 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import type { Article, Video, SiteContent } from '@/types/content'
+import type { Article, Video, SiteContent, IndustryItem } from '@/types/content'
 import { loadContent, saveContent } from '@/lib/storage'
 import { sanitizeArticleHtml, sanitizeYoutubeUrl } from '@/lib/sanitize'
 
 export type { Article, Video, SiteContent }
 
 const defaultContent: SiteContent = {
+  visibleSections: {
+    hero: true,
+    about: true,
+    expertise: true,
+    industries: true,
+    insights: true,
+    videos: true,
+    contact: true,
+  },
+  industries: {
+    title: 'Industries I Transform',
+    subtitle: 'Deep domain expertise across sectors that power our world, from renewable energy to advanced manufacturing.',
+    items: [
+      { title: 'Wind Energy', description: 'Leading digital transformation for onshore and offshore wind farm operations, from turbine maintenance to field service optimization.', projects: '25+', experience: '11 Years' },
+      { title: 'Manufacturing', description: 'Streamlining production workflows and equipment maintenance with integrated ERP solutions.', projects: '30+', experience: '15 Years' },
+      { title: 'Supply Chain', description: 'End-to-end supply chain visibility and logistics optimization across global operations.', projects: '20+', experience: '12 Years' },
+      { title: 'Utilities', description: 'Power distribution and utility service management with predictive maintenance capabilities.', projects: '15+', experience: '8 Years' },
+    ],
+  },
   hero: {
     headline: ['TRANSFORMING', 'ENTERPRISES THROUGH', 'AI & SERVICE EXCELLENCE'],
     subheadline: '25+ Years Architecting SAP & Salesforce Solutions for the Wind Energy Industry',
@@ -171,6 +190,9 @@ interface ContentContextType {
   updateAbout: (updates: Partial<SiteContent['about']>) => void
   updateExpertise: (updates: Partial<SiteContent['expertise']>) => void
   updateContact: (updates: Partial<SiteContent['contact']>) => void
+  updateIndustries: (updates: Partial<SiteContent['industries']>) => void
+  updateIndustryItem: (index: number, updates: Partial<IndustryItem>) => void
+  toggleSectionVisibility: (section: keyof SiteContent['visibleSections']) => void
   addArticle: (article: Omit<Article, 'id' | 'slug' | 'likes' | 'views'>) => void
   updateArticle: (id: string, updates: Partial<Article>) => void
   deleteArticle: (id: string) => void
@@ -196,16 +218,24 @@ interface ContentContextType {
 const ContentContext = createContext<ContentContextType | undefined>(undefined)
 
 export function ContentProvider({ children }: { children: React.ReactNode }) {
-  const [content, setContent] = useState<SiteContent>(() => {
-    const stored = loadContent<Partial<SiteContent>>(defaultContent)
-    return { ...defaultContent, ...stored, contact: { ...defaultContent.contact, ...(stored.contact ?? {}) } }
-  })
+  function mergeWithDefaults(stored: Partial<SiteContent>): SiteContent {
+    return {
+      ...defaultContent,
+      ...stored,
+      visibleSections: { ...defaultContent.visibleSections, ...(stored.visibleSections ?? {}) },
+      industries: { ...defaultContent.industries, ...(stored.industries ?? {}), items: stored.industries?.items ?? defaultContent.industries.items },
+      contact: { ...defaultContent.contact, ...(stored.contact ?? {}) },
+    }
+  }
+
+  const [content, setContent] = useState<SiteContent>(() =>
+    mergeWithDefaults(loadContent<Partial<SiteContent>>(defaultContent))
+  )
   const [previewMode, setPreviewMode] = useState(false)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
-  const [originalContent, setOriginalContent] = useState<SiteContent>(() => {
-    const stored = loadContent<Partial<SiteContent>>(defaultContent)
-    return { ...defaultContent, ...stored, contact: { ...defaultContent.contact, ...(stored.contact ?? {}) } }
-  })
+  const [originalContent, setOriginalContent] = useState<SiteContent>(() =>
+    mergeWithDefaults(loadContent<Partial<SiteContent>>(defaultContent))
+  )
 
   useEffect(() => {
     saveContent(content)
@@ -228,6 +258,29 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
 
   const updateContact = (updates: Partial<SiteContent['contact']>) => {
     setContent(prev => ({ ...prev, contact: { ...prev.contact, ...updates } }))
+    setHasUnsavedChanges(true)
+  }
+
+  const updateIndustries = (updates: Partial<SiteContent['industries']>) => {
+    setContent(prev => ({ ...prev, industries: { ...prev.industries, ...updates } }))
+    setHasUnsavedChanges(true)
+  }
+
+  const updateIndustryItem = (index: number, updates: Partial<IndustryItem>) => {
+    setContent(prev => {
+      const items = prev.industries.items.map((item, i) =>
+        i === index ? { ...item, ...updates } : item
+      )
+      return { ...prev, industries: { ...prev.industries, items } }
+    })
+    setHasUnsavedChanges(true)
+  }
+
+  const toggleSectionVisibility = (section: keyof SiteContent['visibleSections']) => {
+    setContent(prev => ({
+      ...prev,
+      visibleSections: { ...prev.visibleSections, [section]: !prev.visibleSections[section] },
+    }))
     setHasUnsavedChanges(true)
   }
 
@@ -378,6 +431,9 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
         updateAbout,
         updateExpertise,
         updateContact,
+        updateIndustries,
+        updateIndustryItem,
+        toggleSectionVisibility,
         addArticle,
         updateArticle,
         deleteArticle,

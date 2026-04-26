@@ -34,7 +34,7 @@ const MainContent = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [isReady, setIsReady] = useState(false)
   const mainRef = useRef<HTMLDivElement>(null)
-  const { previewMode } = useContent()
+  const { previewMode, content } = useContent()
 
   useSmoothScroll()
 
@@ -92,13 +92,13 @@ const MainContent = () => {
       >
         <Navigation />
         <main className="relative">
-          <Hero />
-          <About />
-          <Expertise />
-          <Industries />
-          <Insights />
-          <Videos />
-          <Contact />
+          {content.visibleSections.hero       && <Hero />}
+          {content.visibleSections.about      && <About />}
+          {content.visibleSections.expertise  && <Expertise />}
+          {content.visibleSections.industries && <Industries />}
+          {content.visibleSections.insights   && <Insights />}
+          {content.visibleSections.videos     && <Videos />}
+          {content.visibleSections.contact    && <Contact />}
         </main>
         <Footer />
       </div>

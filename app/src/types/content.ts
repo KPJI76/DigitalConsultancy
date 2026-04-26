@@ -28,7 +28,28 @@ export interface Video {
   published: boolean
 }
 
+export interface IndustryItem {
+  title: string
+  description: string
+  projects: string
+  experience: string
+}
+
 export interface SiteContent {
+  visibleSections: {
+    hero: boolean
+    about: boolean
+    expertise: boolean
+    industries: boolean
+    insights: boolean
+    videos: boolean
+    contact: boolean
+  }
+  industries: {
+    title: string
+    subtitle: string
+    items: IndustryItem[]
+  }
   hero: {
     headline: string[]
     subheadline: string

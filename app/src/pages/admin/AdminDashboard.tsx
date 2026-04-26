@@ -3,20 +3,22 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useContent } from '../../contexts/ContentContext'
 import { Button } from '@/components/ui/button'
-import { 
-  LayoutDashboard, 
-  FileText, 
-  Settings, 
-  Users, 
-  Eye, 
-  Save, 
+import {
+  LayoutDashboard,
+  FileText,
+  Settings,
+  Users,
+  Eye,
+  Save,
   RotateCcw,
   LogOut,
   ChevronRight,
   BarChart3,
   Heart,
   Mail,
-  Youtube
+  Youtube,
+  Factory,
+  Layers,
 } from 'lucide-react'
 // Youtube is used in VideoManager component
 import HeroEditor from './components/HeroEditor'
@@ -25,6 +27,8 @@ import ArticlesManager from './components/ArticlesManager'
 import ExpertiseEditor from './components/ExpertiseEditor'
 import VideoManager from './components/VideoManager'
 import ContactEditor from './components/ContactEditor'
+import IndustriesEditor from './components/IndustriesEditor'
+import SectionsManager from './components/SectionsManager'
 
 const AdminDashboard = () => {
   const navigate = useNavigate()
@@ -241,6 +245,19 @@ const AdminDashboard = () => {
             </button>
 
             <button
+              onClick={() => setActiveTab('industries')}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${
+                activeTab === 'industries'
+                  ? 'bg-cyan/20 text-cyan'
+                  : 'text-white/60 hover:bg-white/5 hover:text-white'
+              }`}
+            >
+              <Factory size={18} />
+              <span>Industries</span>
+              {activeTab === 'industries' && <ChevronRight size={16} className="ml-auto" />}
+            </button>
+
+            <button
               onClick={() => setActiveTab('contact')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${
                 activeTab === 'contact'
@@ -252,6 +269,21 @@ const AdminDashboard = () => {
               <span>Contact Info</span>
               {activeTab === 'contact' && <ChevronRight size={16} className="ml-auto" />}
             </button>
+
+            <div className="pt-2 border-t border-white/10 mt-2">
+              <button
+                onClick={() => setActiveTab('sections')}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${
+                  activeTab === 'sections'
+                    ? 'bg-cyan/20 text-cyan'
+                    : 'text-white/60 hover:bg-white/5 hover:text-white'
+                }`}
+              >
+                <Layers size={18} />
+                <span>Show / Hide Sections</span>
+                {activeTab === 'sections' && <ChevronRight size={16} className="ml-auto" />}
+              </button>
+            </div>
           </nav>
 
           {/* Quick stats */}
@@ -373,12 +405,14 @@ const AdminDashboard = () => {
             </div>
           )}
 
-          {activeTab === 'hero' && <HeroEditor />}
-          {activeTab === 'about' && <AboutEditor />}
-          {activeTab === 'expertise' && <ExpertiseEditor />}
-          {activeTab === 'articles' && <ArticlesManager />}
-          {activeTab === 'videos' && <VideoManager />}
-          {activeTab === 'contact' && <ContactEditor />}
+          {activeTab === 'hero'       && <HeroEditor />}
+          {activeTab === 'about'      && <AboutEditor />}
+          {activeTab === 'expertise'  && <ExpertiseEditor />}
+          {activeTab === 'industries' && <IndustriesEditor />}
+          {activeTab === 'articles'   && <ArticlesManager />}
+          {activeTab === 'videos'     && <VideoManager />}
+          {activeTab === 'contact'    && <ContactEditor />}
+          {activeTab === 'sections'   && <SectionsManager />}
         </main>
       </div>
     </div>

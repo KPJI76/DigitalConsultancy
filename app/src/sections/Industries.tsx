@@ -1,43 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 import { Wind, Factory, Truck, Zap, ArrowUpRight } from 'lucide-react'
+import { useContent } from '@/contexts/ContentContext'
 
-const industries = [
-  {
-    icon: Wind,
-    title: 'Wind Energy',
-    description: 'Leading digital transformation for onshore and offshore wind farm operations, from turbine maintenance to field service optimization.',
-    stats: { projects: '25+', experience: '11 Years' },
-    color: 'from-cyan/30 to-blue-500/30',
-    size: 'large',
-  },
-  {
-    icon: Factory,
-    title: 'Manufacturing',
-    description: 'Streamlining production workflows and equipment maintenance with integrated ERP solutions.',
-    stats: { projects: '30+', experience: '15 Years' },
-    color: 'from-orange/30 to-red-500/30',
-    size: 'medium',
-  },
-  {
-    icon: Truck,
-    title: 'Supply Chain',
-    description: 'End-to-end supply chain visibility and logistics optimization across global operations.',
-    stats: { projects: '20+', experience: '12 Years' },
-    color: 'from-green-500/30 to-emerald/30',
-    size: 'medium',
-  },
-  {
-    icon: Zap,
-    title: 'Utilities',
-    description: 'Power distribution and utility service management with predictive maintenance capabilities.',
-    stats: { projects: '15+', experience: '8 Years' },
-    color: 'from-yellow-500/30 to-orange/30',
-    size: 'large',
-  },
+const CARD_META = [
+  { icon: Wind,    color: 'from-cyan/30 to-blue-500/30',      size: 'large'  },
+  { icon: Factory, color: 'from-orange/30 to-red-500/30',     size: 'medium' },
+  { icon: Truck,   color: 'from-green-500/30 to-emerald/30',  size: 'medium' },
+  { icon: Zap,     color: 'from-yellow-500/30 to-orange/30',  size: 'large'  },
 ]
 
 const Industries = () => {
+  const { content } = useContent()
   const sectionRef = useRef<HTMLElement>(null)
   const headerRef = useRef<HTMLDivElement>(null)
   const gridRef = useRef<HTMLDivElement>(null)
@@ -109,11 +83,10 @@ const Industries = () => {
             Industry Focus
           </span>
           <h2 className="reveal-item text-3xl sm:text-4xl lg:text-5xl font-bold text-navy mb-6">
-            Industries I <span className="text-cyan">Transform</span>
+            {content.industries.title}
           </h2>
           <p className="reveal-item text-lg text-gray-600 max-w-2xl mx-auto">
-            Deep domain expertise across sectors that power our world, 
-            from renewable energy to advanced manufacturing.
+            {content.industries.subtitle}
           </p>
         </div>
 
@@ -122,64 +95,53 @@ const Industries = () => {
           ref={gridRef}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-[280px]"
         >
-          {industries.map((industry, index) => (
-            <div
-              key={index}
-              className={`industry-card group relative rounded-2xl overflow-hidden cursor-pointer ${
-                industry.size === 'large' ? 'md:col-span-2' : ''
-              }`}
-              onMouseEnter={() => setHoveredIndex(index)}
-              onMouseLeave={() => setHoveredIndex(null)}
-            >
-              {/* Background gradient */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${industry.color} opacity-60 group-hover:opacity-80 transition-opacity duration-500`} />
-              
-              {/* Navy overlay */}
-              <div className="absolute inset-0 bg-navy/80 group-hover:bg-navy/70 transition-colors duration-500" />
-
-              {/* Content */}
-              <div className="relative h-full p-8 flex flex-col justify-between">
-                {/* Top section */}
-                <div>
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="w-14 h-14 rounded-xl bg-white/10 flex items-center justify-center group-hover:bg-cyan/20 group-hover:scale-110 transition-all duration-300">
-                      <industry.icon className="w-7 h-7 text-cyan" />
-                    </div>
-                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <ArrowUpRight className="w-5 h-5 text-cyan" />
-                    </div>
-                  </div>
-                  
-                  <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-cyan transition-colors">
-                    {industry.title}
-                  </h3>
-                  <p className="text-white/60 text-sm leading-relaxed group-hover:text-white/80 transition-colors">
-                    {industry.description}
-                  </p>
-                </div>
-
-                {/* Bottom section - Stats */}
-                <div className="flex items-center gap-6 pt-4 border-t border-white/10">
-                  <div>
-                    <p className="text-2xl font-bold text-cyan">{industry.stats.projects}</p>
-                    <p className="text-white/40 text-xs">Projects</p>
-                  </div>
-                  <div className="w-px h-10 bg-white/10" />
-                  <div>
-                    <p className="text-2xl font-bold text-white">{industry.stats.experience}</p>
-                    <p className="text-white/40 text-xs">Experience</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Hover glow effect */}
-              <div 
-                className={`absolute inset-0 bg-cyan/10 transition-opacity duration-500 ${
-                  hoveredIndex === index ? 'opacity-100' : 'opacity-0'
+          {content.industries.items.map((industry, index) => {
+            const meta = CARD_META[index] ?? CARD_META[0]
+            const Icon = meta!.icon
+            return (
+              <div
+                key={index}
+                className={`industry-card group relative rounded-2xl overflow-hidden cursor-pointer ${
+                  meta!.size === 'large' ? 'md:col-span-2' : ''
                 }`}
-              />
-            </div>
-          ))}
+                onMouseEnter={() => setHoveredIndex(index)}
+                onMouseLeave={() => setHoveredIndex(null)}
+              >
+                <div className={`absolute inset-0 bg-gradient-to-br ${meta!.color} opacity-60 group-hover:opacity-80 transition-opacity duration-500`} />
+                <div className="absolute inset-0 bg-navy/80 group-hover:bg-navy/70 transition-colors duration-500" />
+                <div className="relative h-full p-8 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="w-14 h-14 rounded-xl bg-white/10 flex items-center justify-center group-hover:bg-cyan/20 group-hover:scale-110 transition-all duration-300">
+                        <Icon className="w-7 h-7 text-cyan" />
+                      </div>
+                      <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <ArrowUpRight className="w-5 h-5 text-cyan" />
+                      </div>
+                    </div>
+                    <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-cyan transition-colors">
+                      {industry.title}
+                    </h3>
+                    <p className="text-white/60 text-sm leading-relaxed group-hover:text-white/80 transition-colors">
+                      {industry.description}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-6 pt-4 border-t border-white/10">
+                    <div>
+                      <p className="text-2xl font-bold text-cyan">{industry.projects}</p>
+                      <p className="text-white/40 text-xs">Projects</p>
+                    </div>
+                    <div className="w-px h-10 bg-white/10" />
+                    <div>
+                      <p className="text-2xl font-bold text-white">{industry.experience}</p>
+                      <p className="text-white/40 text-xs">Experience</p>
+                    </div>
+                  </div>
+                </div>
+                <div className={`absolute inset-0 bg-cyan/10 transition-opacity duration-500 ${hoveredIndex === index ? 'opacity-100' : 'opacity-0'}`} />
+              </div>
+            )
+          })}
         </div>
 
         {/* Industry logos or trust indicators */}
