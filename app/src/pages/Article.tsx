@@ -87,11 +87,11 @@ const Article = () => {
         <div className="max-w-4xl mx-auto px-6 lg:px-8">
           {/* Back Button */}
           <button
-            onClick={() => navigate('/#insights')}
+            onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/')}
             className="flex items-center gap-2 text-white/60 hover:text-cyan transition-colors mb-8"
           >
             <ArrowLeft size={18} />
-            Back to Insights
+            Back
           </button>
 
           {/* Category & Meta */}
