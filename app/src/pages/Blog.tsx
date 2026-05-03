@@ -4,9 +4,52 @@ import { useContent } from '../contexts/ContentContext'
 import { useAuth } from '../contexts/AuthContext'
 import Navigation from '../sections/Navigation'
 import Footer from '../sections/Footer'
+import type { Article } from '../contexts/ContentContext'
 import {
   Search, Calendar, Clock, Eye, Heart, Tag, ArrowRight, BookOpen, Filter, ExternalLink
 } from 'lucide-react'
+
+// Shared card body for the featured article
+const FeaturedBody = ({ article }: { article: Article }) => (
+  <div className="flex flex-col lg:flex-row gap-8">
+    <div className="flex-1">
+      <div className="flex items-center gap-3 mb-4">
+        <span className="px-3 py-1 bg-cyan/10 text-cyan text-xs font-medium rounded-full">
+          {article.category}
+        </span>
+        <span className="px-2 py-0.5 bg-white/10 text-white/40 text-xs rounded-full">Featured</span>
+        {article.externalUrl && (
+          <span className="flex items-center gap-1 px-2 py-0.5 bg-purple-500/15 text-purple-400 text-xs rounded-full">
+            <ExternalLink size={10} /> External
+          </span>
+        )}
+      </div>
+      <h2 className="text-2xl lg:text-3xl font-bold text-white mb-3 group-hover:text-cyan transition-colors">
+        {article.title}
+      </h2>
+      <p className="text-white/60 leading-relaxed mb-6">{article.excerpt}</p>
+      <div className="flex flex-wrap items-center gap-4 text-white/40 text-sm mb-6">
+        <span className="flex items-center gap-1.5"><Calendar size={14} /> {article.date}</span>
+        <span className="flex items-center gap-1.5"><Clock size={14} /> {article.readTime}</span>
+        <span className="flex items-center gap-1.5"><Eye size={14} /> {article.views.toLocaleString()}</span>
+        <span className="flex items-center gap-1.5"><Heart size={14} /> {article.likes}</span>
+      </div>
+      <div className={`flex items-center gap-2 font-medium ${article.externalUrl ? 'text-purple-400' : 'text-cyan'}`}>
+        {article.externalUrl ? 'Open Article' : 'Read Article'}
+        <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+      </div>
+    </div>
+    {article.tags.length > 0 && (
+      <div className="lg:w-48 flex flex-col justify-end gap-2">
+        {article.tags.map(tag => (
+          <span key={tag} className="flex items-center gap-1 text-white/30 text-xs">
+            <Tag size={11} /> {tag}
+          </span>
+        ))}
+      </div>
+    )}
+  </div>
+)
 
 const Blog = () => {
   const { getPublishedArticles } = useContent()
@@ -35,6 +78,8 @@ const Blog = () => {
   const featured = filtered[0]
   const rest = filtered.slice(1)
 
+  const featuredClass = "group block mb-12 p-8 rounded-2xl bg-white/5 border border-white/10 transition-all duration-300"
+
   return (
     <div className="min-h-screen bg-navy">
       <Navigation />
@@ -58,7 +103,6 @@ const Blog = () => {
 
           {/* Search + filter row */}
           <div className="flex flex-col sm:flex-row gap-4">
-            {/* Search */}
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
               <input
@@ -70,7 +114,6 @@ const Blog = () => {
               />
             </div>
 
-            {/* Category tabs */}
             <div className="flex items-center gap-2 flex-wrap">
               <Filter size={14} className="text-white/40" />
               {categories.map(cat => (
@@ -101,84 +144,78 @@ const Blog = () => {
           <>
             {/* Featured article */}
             {featured && (
-              <Link
-                to={`/article/${featured.slug}`}
-                className="group block mb-12 p-8 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan/30 transition-all duration-300"
-              >
-                <div className="flex flex-col lg:flex-row gap-8">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-4">
-                      <span className="px-3 py-1 bg-cyan/10 text-cyan text-xs font-medium rounded-full">
-                        {featured.category}
-                      </span>
-                      <span className="px-2 py-0.5 bg-white/10 text-white/40 text-xs rounded-full">Featured</span>
-                      {featured.externalUrl && (
-                        <span className="flex items-center gap-1 px-2 py-0.5 bg-purple-500/15 text-purple-400 text-xs rounded-full">
-                          <ExternalLink size={10} /> External
-                        </span>
-                      )}
-                    </div>
-                    <h2 className="text-2xl lg:text-3xl font-bold text-white mb-3 group-hover:text-cyan transition-colors">
-                      {featured.title}
-                    </h2>
-                    <p className="text-white/60 leading-relaxed mb-6">{featured.excerpt}</p>
-                    <div className="flex flex-wrap items-center gap-4 text-white/40 text-sm mb-6">
-                      <span className="flex items-center gap-1.5"><Calendar size={14} /> {featured.date}</span>
-                      <span className="flex items-center gap-1.5"><Clock size={14} /> {featured.readTime}</span>
-                      <span className="flex items-center gap-1.5"><Eye size={14} /> {featured.views.toLocaleString()}</span>
-                      <span className="flex items-center gap-1.5"><Heart size={14} /> {featured.likes}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-cyan font-medium">
-                      Read Article <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </div>
-                  {featured.tags.length > 0 && (
-                    <div className="lg:w-48 flex flex-col justify-end gap-2">
-                      {featured.tags.map(tag => (
-                        <span key={tag} className="flex items-center gap-1 text-white/30 text-xs">
-                          <Tag size={11} /> {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </Link>
+              featured.externalUrl ? (
+                <a
+                  href={featured.externalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`${featuredClass} hover:border-purple-500/30`}
+                >
+                  <FeaturedBody article={featured} />
+                </a>
+              ) : (
+                <Link
+                  to={`/article/${featured.slug}`}
+                  className={`${featuredClass} hover:border-cyan/30`}
+                >
+                  <FeaturedBody article={featured} />
+                </Link>
+              )
             )}
 
             {/* Article grid */}
             {rest.length > 0 && (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {rest.map(article => (
-                  <Link
-                    key={article.id}
-                    to={`/article/${article.slug}`}
-                    className="group flex flex-col p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan/30 transition-all duration-300"
-                  >
-                    <div className="flex items-center gap-2 mb-4 flex-wrap">
-                      <span className="px-3 py-1 bg-cyan/10 text-cyan text-xs font-medium rounded-full">
-                        {article.category}
-                      </span>
-                      {article.externalUrl && (
-                        <span className="flex items-center gap-1 px-2 py-0.5 bg-purple-500/15 text-purple-400 text-xs rounded-full">
-                          <ExternalLink size={10} /> External
+                {rest.map(article => {
+                  const cardClass = "group flex flex-col p-6 rounded-2xl bg-white/5 border border-white/10 transition-all duration-300"
+                  const cardInner = (
+                    <>
+                      <div className="flex items-center gap-2 mb-4 flex-wrap">
+                        <span className="px-3 py-1 bg-cyan/10 text-cyan text-xs font-medium rounded-full">
+                          {article.category}
                         </span>
-                      )}
-                    </div>
-                    <h3 className="text-lg font-bold text-white mb-2 group-hover:text-cyan transition-colors line-clamp-2">
-                      {article.title}
-                    </h3>
-                    <p className="text-white/50 text-sm leading-relaxed mb-4 flex-1 line-clamp-3">
-                      {article.excerpt}
-                    </p>
-                    <div className="flex items-center justify-between text-white/30 text-xs mt-auto pt-4 border-t border-white/5">
-                      <span className="flex items-center gap-1"><Calendar size={12} /> {article.date}</span>
-                      <div className="flex items-center gap-3">
-                        <span className="flex items-center gap-1"><Eye size={12} /> {article.views}</span>
-                        <span className="flex items-center gap-1"><Heart size={12} /> {article.likes}</span>
+                        {article.externalUrl && (
+                          <span className="flex items-center gap-1 px-2 py-0.5 bg-purple-500/15 text-purple-400 text-xs rounded-full">
+                            <ExternalLink size={10} /> External
+                          </span>
+                        )}
                       </div>
-                    </div>
-                  </Link>
-                ))}
+                      <h3 className="text-lg font-bold text-white mb-2 group-hover:text-cyan transition-colors line-clamp-2">
+                        {article.title}
+                      </h3>
+                      <p className="text-white/50 text-sm leading-relaxed mb-4 flex-1 line-clamp-3">
+                        {article.excerpt}
+                      </p>
+                      <div className="flex items-center justify-between text-white/30 text-xs mt-auto pt-4 border-t border-white/5">
+                        <span className="flex items-center gap-1"><Calendar size={12} /> {article.date}</span>
+                        <div className="flex items-center gap-3">
+                          <span className="flex items-center gap-1"><Eye size={12} /> {article.views}</span>
+                          <span className="flex items-center gap-1"><Heart size={12} /> {article.likes}</span>
+                        </div>
+                      </div>
+                    </>
+                  )
+
+                  return article.externalUrl ? (
+                    <a
+                      key={article.id}
+                      href={article.externalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`${cardClass} hover:border-purple-500/30`}
+                    >
+                      {cardInner}
+                    </a>
+                  ) : (
+                    <Link
+                      key={article.id}
+                      to={`/article/${article.slug}`}
+                      className={`${cardClass} hover:border-cyan/30`}
+                    >
+                      {cardInner}
+                    </Link>
+                  )
+                })}
               </div>
             )}
           </>

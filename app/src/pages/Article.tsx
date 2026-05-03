@@ -175,28 +175,38 @@ const Article = () => {
 
       {/* Article Content */}
       {article.externalUrl ? (
-        /* External link article — show full-height iframe */
-        <div className="bg-navy">
-          {/* Open in new tab bar */}
-          <div className="flex items-center justify-between px-6 py-3 bg-white/5 border-b border-white/10">
-            <span className="text-white/50 text-sm">Viewing embedded resource</span>
+        /* External article — show a launch card (iframes blocked by GitHub Pages) */
+        <div className="py-16 bg-navy">
+          <div className="max-w-2xl mx-auto px-6 lg:px-8 text-center">
+            {/* Icon */}
+            <div className="w-20 h-20 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mx-auto mb-8">
+              <ExternalLink size={36} className="text-purple-400" />
+            </div>
+
+            <h2 className="text-2xl font-bold text-white mb-3">This is an external resource</h2>
+            <p className="text-white/60 mb-10 leading-relaxed">
+              This article lives on an external page. Click below to open it — it will load in a new tab so you never lose your place here.
+            </p>
+
+            {/* Primary CTA */}
             <a
               href={article.externalUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-1.5 bg-cyan text-navy font-semibold text-sm rounded-lg hover:bg-white transition-all"
+              className="inline-flex items-center gap-3 px-8 py-4 bg-cyan text-navy font-bold text-lg rounded-xl hover:bg-white transition-all duration-300 shadow-lg hover:shadow-cyan/20 mb-6"
             >
-              <ExternalLink size={14} />
-              Open in new tab
+              <ExternalLink size={20} />
+              Open Full Article
             </a>
+
+            {/* URL preview */}
+            <div className="flex items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-xl text-left">
+              <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+                <ExternalLink size={14} className="text-white/50" />
+              </div>
+              <p className="text-white/40 text-sm truncate">{article.externalUrl}</p>
+            </div>
           </div>
-          <iframe
-            src={article.externalUrl}
-            title={article.title}
-            className="w-full border-0"
-            style={{ height: 'calc(100vh - 80px)' }}
-            allow="fullscreen"
-          />
         </div>
       ) : (
         <article className="py-16 bg-navy">

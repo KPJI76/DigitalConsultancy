@@ -4,6 +4,37 @@ import { gsap } from 'gsap'
 import { ArrowRight, Calendar, Clock, BookOpen, Share2, MessageCircle, Heart, Eye, Copy, Check, ExternalLink } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useContent } from '../contexts/ContentContext'
+import type { Article } from '../contexts/ContentContext'
+
+const ArticleCardContent = ({ article }: { article: Article }) => (
+  <>
+    <div className="flex flex-wrap items-center gap-3 mb-2">
+      <span className="px-3 py-1 bg-white/5 text-cyan text-xs font-medium rounded-full">
+        {article.category}
+      </span>
+      {article.externalUrl && (
+        <span className="flex items-center gap-1 px-2 py-0.5 bg-purple-500/15 text-purple-400 text-xs rounded-full">
+          <ExternalLink size={10} /> External
+        </span>
+      )}
+      <span className="flex items-center gap-1 text-white/40 text-xs">
+        <Calendar size={12} /> {article.date}
+      </span>
+      <span className="flex items-center gap-1 text-white/40 text-xs">
+        <Clock size={12} /> {article.readTime}
+      </span>
+      <span className="flex items-center gap-1 text-white/40 text-xs">
+        <Eye size={12} /> {article.views}
+      </span>
+    </div>
+    <h3 className="text-xl lg:text-2xl font-semibold text-white mb-2 group-hover:text-cyan transition-colors">
+      {article.title}
+    </h3>
+    <p className="text-white/50 text-sm lg:text-base line-clamp-2 group-hover:text-white/70 transition-colors">
+      {article.excerpt}
+    </p>
+  </>
+)
 
 const Insights = () => {
   const sectionRef = useRef<HTMLElement>(null)
@@ -202,41 +233,26 @@ const Insights = () => {
                   {String(index + 1).padStart(2, '0')}
                 </span>
 
-                {/* Clickable content area → goes to article page */}
-                <Link
-                  to={`/article/${article.slug}`}
-                  className="flex-1 min-w-0"
-                  onClick={() => incrementArticleViews(article.id)}
-                >
-                  <div className="flex flex-wrap items-center gap-3 mb-2">
-                    <span className="px-3 py-1 bg-white/5 text-cyan text-xs font-medium rounded-full">
-                      {article.category}
-                    </span>
-                    {article.externalUrl && (
-                      <span className="flex items-center gap-1 px-2 py-0.5 bg-purple-500/15 text-purple-400 text-xs rounded-full">
-                        <ExternalLink size={10} /> External
-                      </span>
-                    )}
-                    <span className="flex items-center gap-1 text-white/40 text-xs">
-                      <Calendar size={12} />
-                      {article.date}
-                    </span>
-                    <span className="flex items-center gap-1 text-white/40 text-xs">
-                      <Clock size={12} />
-                      {article.readTime}
-                    </span>
-                    <span className="flex items-center gap-1 text-white/40 text-xs">
-                      <Eye size={12} /> {article.views}
-                    </span>
-                  </div>
-
-                  <h3 className="text-xl lg:text-2xl font-semibold text-white mb-2 group-hover:text-cyan transition-colors">
-                    {article.title}
-                  </h3>
-                  <p className="text-white/50 text-sm lg:text-base line-clamp-2 group-hover:text-white/70 transition-colors">
-                    {article.excerpt}
-                  </p>
-                </Link>
+                {/* Clickable content area — external opens new tab, internal navigates */}
+                {article.externalUrl ? (
+                  <a
+                    href={article.externalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 min-w-0"
+                    onClick={() => incrementArticleViews(article.id)}
+                  >
+                    <ArticleCardContent article={article} />
+                  </a>
+                ) : (
+                  <Link
+                    to={`/article/${article.slug}`}
+                    className="flex-1 min-w-0"
+                    onClick={() => incrementArticleViews(article.id)}
+                  >
+                    <ArticleCardContent article={article} />
+                  </Link>
+                )}
 
                 {/* Actions — stopPropagation so they don't trigger navigation */}
                 <div className="flex items-center gap-3 shrink-0">
@@ -268,13 +284,25 @@ const Insights = () => {
                     <Share2 size={15} />
                   </button>
 
-                  <Link
-                    to={`/article/${article.slug}`}
-                    className="w-9 h-9 rounded-full bg-cyan/10 flex items-center justify-center text-cyan hover:bg-cyan hover:text-navy transition-all"
-                    onClick={() => incrementArticleViews(article.id)}
-                  >
-                    <ArrowRight size={15} />
-                  </Link>
+                  {article.externalUrl ? (
+                    <a
+                      href={article.externalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-9 h-9 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 hover:bg-purple-500 hover:text-white transition-all"
+                      onClick={() => incrementArticleViews(article.id)}
+                    >
+                      <ExternalLink size={15} />
+                    </a>
+                  ) : (
+                    <Link
+                      to={`/article/${article.slug}`}
+                      className="w-9 h-9 rounded-full bg-cyan/10 flex items-center justify-center text-cyan hover:bg-cyan hover:text-navy transition-all"
+                      onClick={() => incrementArticleViews(article.id)}
+                    >
+                      <ArrowRight size={15} />
+                    </Link>
+                  )}
                 </div>
               </div>
             </article>
