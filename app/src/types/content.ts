@@ -12,6 +12,7 @@ export interface Article {
   likes: number
   views: number
   published: boolean
+  externalUrl?: string   // if set, article page shows this URL in an iframe
 }
 
 export interface Video {

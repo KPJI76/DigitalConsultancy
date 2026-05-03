@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { gsap } from 'gsap'
-import { ArrowRight, Calendar, Clock, BookOpen, Share2, MessageCircle, Heart, Eye, Copy, Check } from 'lucide-react'
+import { ArrowRight, Calendar, Clock, BookOpen, Share2, MessageCircle, Heart, Eye, Copy, Check, ExternalLink } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useContent } from '../contexts/ContentContext'
 
@@ -212,6 +212,11 @@ const Insights = () => {
                     <span className="px-3 py-1 bg-white/5 text-cyan text-xs font-medium rounded-full">
                       {article.category}
                     </span>
+                    {article.externalUrl && (
+                      <span className="flex items-center gap-1 px-2 py-0.5 bg-purple-500/15 text-purple-400 text-xs rounded-full">
+                        <ExternalLink size={10} /> External
+                      </span>
+                    )}
                     <span className="flex items-center gap-1 text-white/40 text-xs">
                       <Calendar size={12} />
                       {article.date}

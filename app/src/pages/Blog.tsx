@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext'
 import Navigation from '../sections/Navigation'
 import Footer from '../sections/Footer'
 import {
-  Search, Calendar, Clock, Eye, Heart, Tag, ArrowRight, BookOpen, Filter
+  Search, Calendar, Clock, Eye, Heart, Tag, ArrowRight, BookOpen, Filter, ExternalLink
 } from 'lucide-react'
 
 const Blog = () => {
@@ -112,6 +112,11 @@ const Blog = () => {
                         {featured.category}
                       </span>
                       <span className="px-2 py-0.5 bg-white/10 text-white/40 text-xs rounded-full">Featured</span>
+                      {featured.externalUrl && (
+                        <span className="flex items-center gap-1 px-2 py-0.5 bg-purple-500/15 text-purple-400 text-xs rounded-full">
+                          <ExternalLink size={10} /> External
+                        </span>
+                      )}
                     </div>
                     <h2 className="text-2xl lg:text-3xl font-bold text-white mb-3 group-hover:text-cyan transition-colors">
                       {featured.title}
@@ -149,9 +154,16 @@ const Blog = () => {
                     to={`/article/${article.slug}`}
                     className="group flex flex-col p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan/30 transition-all duration-300"
                   >
-                    <span className="inline-block px-3 py-1 bg-cyan/10 text-cyan text-xs font-medium rounded-full mb-4 self-start">
-                      {article.category}
-                    </span>
+                    <div className="flex items-center gap-2 mb-4 flex-wrap">
+                      <span className="px-3 py-1 bg-cyan/10 text-cyan text-xs font-medium rounded-full">
+                        {article.category}
+                      </span>
+                      {article.externalUrl && (
+                        <span className="flex items-center gap-1 px-2 py-0.5 bg-purple-500/15 text-purple-400 text-xs rounded-full">
+                          <ExternalLink size={10} /> External
+                        </span>
+                      )}
+                    </div>
                     <h3 className="text-lg font-bold text-white mb-2 group-hover:text-cyan transition-colors line-clamp-2">
                       {article.title}
                     </h3>

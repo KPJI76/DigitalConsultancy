@@ -154,6 +154,22 @@ const defaultContent: SiteContent = {
       views: 756,
       published: true,
     },
+    {
+      id: 'ai-architecture-framework',
+      slug: 'ai-architecture-accountability-framework',
+      title: 'AI Architecture Accountability Framework',
+      excerpt: 'An interactive framework for establishing clear accountability boundaries in enterprise AI architecture — separating the "what" from the "how" across Salesforce FSL, SAP, and ServiceNow transformation programs.',
+      content: '',
+      category: 'AI & Technology',
+      date: 'May 1, 2026',
+      readTime: '15 min read',
+      image: 'Architecture Framework',
+      tags: ['AI', 'Architecture', 'Enterprise', 'SAP', 'Salesforce'],
+      likes: 0,
+      views: 0,
+      published: true,
+      externalUrl: 'https://kpji76.github.io/architecture-accountability/ai-architecture-framework.html',
+    },
   ],
   videos: [
     {
@@ -234,6 +250,13 @@ const ContentContext = createContext<ContentContextType | undefined>(undefined)
 
 export function ContentProvider({ children }: { children: React.ReactNode }) {
   function mergeWithDefaults(stored: Partial<SiteContent>): SiteContent {
+    // Seed any default articles that aren't yet in stored data (by id)
+    const storedArticleIds = new Set((stored.articles ?? []).map(a => a.id))
+    const unseenDefaults = defaultContent.articles.filter(a => !storedArticleIds.has(a.id))
+    const mergedArticles = stored.articles
+      ? [...stored.articles, ...unseenDefaults]
+      : defaultContent.articles
+
     return {
       ...defaultContent,
       ...stored,
@@ -241,6 +264,7 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
       visibleSections: { ...defaultContent.visibleSections, ...(stored.visibleSections ?? {}) },
       industries: { ...defaultContent.industries, ...(stored.industries ?? {}), items: stored.industries?.items ?? defaultContent.industries.items },
       contact: { ...defaultContent.contact, ...(stored.contact ?? {}) },
+      articles: mergedArticles,
     }
   }
 

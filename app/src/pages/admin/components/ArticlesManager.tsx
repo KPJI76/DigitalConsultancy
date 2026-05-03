@@ -36,6 +36,7 @@ const emptyArticle = {
   image: '',
   tags: [] as string[],
   published: false,
+  externalUrl: '',
 }
 
 const ArticlesManager = () => {
@@ -80,6 +81,7 @@ const ArticlesManager = () => {
       image: article.image,
       tags: [...article.tags],
       published: article.published,
+      externalUrl: article.externalUrl ?? '',
     })
     setEditingId(article.id)
     setIsEditing(true)
@@ -157,12 +159,17 @@ const ArticlesManager = () => {
               <div className="flex items-center gap-3 mb-1">
                 <h3 className="text-white font-medium">{article.title}</h3>
                 <span className={`px-2 py-0.5 rounded text-xs ${
-                  article.published 
-                    ? 'bg-green-500/20 text-green-400' 
+                  article.published
+                    ? 'bg-green-500/20 text-green-400'
                     : 'bg-orange/20 text-orange'
                 }`}>
                   {article.published ? 'Published' : 'Draft'}
                 </span>
+                {article.externalUrl && (
+                  <span className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-purple-500/20 text-purple-400">
+                    <ExternalLink size={10} /> External Link
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-4 text-sm text-white/40">
                 <span>{article.category}</span>
@@ -310,18 +317,38 @@ const ArticlesManager = () => {
               />
             </div>
 
-            {/* Content */}
+            {/* External Link URL */}
             <div className="space-y-2">
-              <Label>Content (HTML)</Label>
-              <Textarea
-                value={editingArticle.content}
-                onChange={(e) => setEditingArticle({ ...editingArticle, content: e.target.value })}
-                placeholder="<p>Your article content here...</p>"
-                rows={10}
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-cyan font-mono text-sm"
+              <Label className="flex items-center gap-2">
+                <ExternalLink size={14} className="text-purple-400" />
+                External Link URL
+                <span className="text-white/30 font-normal text-xs">(optional — embed an external page instead of writing content)</span>
+              </Label>
+              <Input
+                value={editingArticle.externalUrl}
+                onChange={(e) => setEditingArticle({ ...editingArticle, externalUrl: e.target.value })}
+                placeholder="https://example.com/your-article"
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-purple-400"
               />
-              <p className="text-white/40 text-xs">Supports HTML tags: &lt;p&gt;, &lt;h3&gt;, &lt;ul&gt;, &lt;li&gt;, etc.</p>
+              {editingArticle.externalUrl && (
+                <p className="text-purple-400 text-xs">✓ Article page will display this URL in an embedded iframe with an "Open in new tab" button.</p>
+              )}
             </div>
+
+            {/* Content — hidden when external URL is set */}
+            {!editingArticle.externalUrl && (
+              <div className="space-y-2">
+                <Label>Content (HTML)</Label>
+                <Textarea
+                  value={editingArticle.content}
+                  onChange={(e) => setEditingArticle({ ...editingArticle, content: e.target.value })}
+                  placeholder="<p>Your article content here...</p>"
+                  rows={10}
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-cyan font-mono text-sm"
+                />
+                <p className="text-white/40 text-xs">Supports HTML tags: &lt;p&gt;, &lt;h3&gt;, &lt;ul&gt;, &lt;li&gt;, etc.</p>
+              </div>
+            )}
 
             {/* Tags */}
             <div className="space-y-2">

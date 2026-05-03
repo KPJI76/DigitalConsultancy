@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useContent } from '../contexts/ContentContext'
 import { useAuth } from '../contexts/AuthContext'
-import { Calendar, Clock, Eye, Heart, Share2, ArrowLeft, Tag, Copy, Check } from 'lucide-react'
+import { Calendar, Clock, Eye, Heart, Share2, ArrowLeft, Tag, Copy, Check, ExternalLink } from 'lucide-react'
 import Navigation from '../sections/Navigation'
 import Footer from '../sections/Footer'
 import { SafeHtml } from '../components/SafeHtml'
@@ -174,41 +174,67 @@ const Article = () => {
       </div>
 
       {/* Article Content */}
-      <article className="py-16 bg-navy">
-        <div className="max-w-3xl mx-auto px-6 lg:px-8">
-          <SafeHtml
-            html={article.content}
-            mode="article"
-            className="prose prose-invert prose-lg max-w-none"
+      {article.externalUrl ? (
+        /* External link article — show full-height iframe */
+        <div className="bg-navy">
+          {/* Open in new tab bar */}
+          <div className="flex items-center justify-between px-6 py-3 bg-white/5 border-b border-white/10">
+            <span className="text-white/50 text-sm">Viewing embedded resource</span>
+            <a
+              href={article.externalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-4 py-1.5 bg-cyan text-navy font-semibold text-sm rounded-lg hover:bg-white transition-all"
+            >
+              <ExternalLink size={14} />
+              Open in new tab
+            </a>
+          </div>
+          <iframe
+            src={article.externalUrl}
+            title={article.title}
+            className="w-full border-0"
+            style={{ height: 'calc(100vh - 80px)' }}
+            allow="fullscreen"
           />
-          
-          {/* Share at bottom */}
-          <div className="mt-16 pt-8 border-t border-white/10">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div>
-                <p className="text-white font-medium mb-1">Enjoyed this article?</p>
-                <p className="text-white/50 text-sm">Share it with your network</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={copyLink}
-                  className="flex items-center gap-2 px-4 py-2 bg-white/5 text-white/70 rounded-lg hover:bg-white/10 transition-all"
-                >
-                  {copied ? <Check size={16} className="text-green-400" /> : <Copy size={16} />}
-                  {copied ? 'Link Copied!' : 'Copy Article Link'}
-                </button>
-                <button
-                  onClick={handleShare}
-                  className="flex items-center gap-2 px-4 py-2 bg-cyan text-navy font-semibold rounded-lg hover:bg-white transition-all"
-                >
-                  <Share2 size={16} />
-                  Share
-                </button>
+        </div>
+      ) : (
+        <article className="py-16 bg-navy">
+          <div className="max-w-3xl mx-auto px-6 lg:px-8">
+            <SafeHtml
+              html={article.content}
+              mode="article"
+              className="prose prose-invert prose-lg max-w-none"
+            />
+
+            {/* Share at bottom */}
+            <div className="mt-16 pt-8 border-t border-white/10">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                  <p className="text-white font-medium mb-1">Enjoyed this article?</p>
+                  <p className="text-white/50 text-sm">Share it with your network</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={copyLink}
+                    className="flex items-center gap-2 px-4 py-2 bg-white/5 text-white/70 rounded-lg hover:bg-white/10 transition-all"
+                  >
+                    {copied ? <Check size={16} className="text-green-400" /> : <Copy size={16} />}
+                    {copied ? 'Link Copied!' : 'Copy Article Link'}
+                  </button>
+                  <button
+                    onClick={handleShare}
+                    className="flex items-center gap-2 px-4 py-2 bg-cyan text-navy font-semibold rounded-lg hover:bg-white transition-all"
+                  >
+                    <Share2 size={16} />
+                    Share
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </article>
+        </article>
+      )}
 
       <Footer />
     </div>
