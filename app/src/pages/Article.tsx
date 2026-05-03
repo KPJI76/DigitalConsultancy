@@ -40,6 +40,12 @@ const Article = () => {
     )
   }
 
+  // Auto-detect full HTML even if flag not set (handles legacy saved articles)
+  const isFullPage = article.isFullPage ||
+    article.content.trimStart().startsWith('<!DOCTYPE') ||
+    article.content.trimStart().startsWith('<!doctype') ||
+    article.content.trimStart().startsWith('<html')
+
   const isLiked = user?.likedArticles?.includes(article.id) || false
 
   const handleLike = () => {
@@ -174,7 +180,7 @@ const Article = () => {
       </div>
 
       {/* Article Content */}
-      {article.isFullPage ? (
+      {isFullPage ? (
         /* Full HTML page — render via srcdoc iframe (bypasses X-Frame-Options) */
         <div className="bg-navy">
           <div className="flex items-center justify-between px-6 py-3 bg-white/5 border-b border-white/10">

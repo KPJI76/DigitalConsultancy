@@ -337,6 +337,13 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
       .substring(0, 60)
   }
 
+  // Auto-detect full HTML documents — if content starts with <!DOCTYPE or <html, treat as full page
+  function detectFullPage(content: string, explicitFlag?: boolean): boolean {
+    if (explicitFlag) return true
+    const trimmed = content.trimStart()
+    return trimmed.startsWith('<!DOCTYPE') || trimmed.startsWith('<!doctype') || trimmed.startsWith('<html')
+  }
+
   const addArticle = (article: Omit<Article, 'id' | 'slug' | 'likes' | 'views'>) => {
     setContent(prev => {
       const slug = generateSlug(article.title)
@@ -346,10 +353,11 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
         uniqueSlug = `${slug}-${counter}`
         counter++
       }
+      const isFullPage = detectFullPage(article.content, article.isFullPage)
       const newArticle: Article = {
         ...article,
-        // Skip sanitization for full HTML pages — they need scripts/styles intact
-        content: article.isFullPage ? article.content : sanitizeArticleHtml(article.content),
+        isFullPage,
+        content: isFullPage ? article.content : sanitizeArticleHtml(article.content),
         id: `article-${Date.now()}`,
         slug: uniqueSlug,
         likes: 0,
@@ -361,10 +369,13 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
   }
 
   const updateArticle = (id: string, updates: Partial<Article>) => {
-    const isFullPage = updates.isFullPage ?? content.articles.find(a => a.id === id)?.isFullPage
+    const existingArticle = content.articles.find(a => a.id === id)
+    const isFullPage = updates.content !== undefined
+      ? detectFullPage(updates.content, updates.isFullPage ?? existingArticle?.isFullPage)
+      : (updates.isFullPage ?? existingArticle?.isFullPage ?? false)
     const sanitizedUpdates = updates.content !== undefined
-      ? { ...updates, content: isFullPage ? updates.content : sanitizeArticleHtml(updates.content) }
-      : updates
+      ? { ...updates, isFullPage, content: isFullPage ? updates.content : sanitizeArticleHtml(updates.content) }
+      : { ...updates, isFullPage }
     setContent(prev => ({
       ...prev,
       articles: prev.articles.map(a => a.id === id ? { ...a, ...sanitizedUpdates } : a),
