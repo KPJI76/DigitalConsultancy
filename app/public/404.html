@@ -2,9 +2,16 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <title>Redirecting...</title>
   <script>
-    sessionStorage.redirect = location.href;
+    // SPA redirect for GitHub Pages project pages
+    // Stores the intended URL and redirects to the app root
+    var loc = window.location;
+    sessionStorage.setItem('redirect', loc.href);
+    // Use the repo root — works for any project page path
+    var base = loc.pathname.split('/').slice(0, 2).join('/') + '/';
+    loc.replace(loc.protocol + '//' + loc.host + base);
   </script>
-  <meta http-equiv="refresh" content="0;URL='/DigitalConsultancy/'">
 </head>
+<body></body>
 </html>
