@@ -201,7 +201,7 @@ const Article = () => {
             title={article.title}
             className="w-full border-0"
             style={{ height: 'calc(100vh - 80px)' }}
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+            sandbox="allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
           />
         </div>
       ) : article.externalUrl ? (
