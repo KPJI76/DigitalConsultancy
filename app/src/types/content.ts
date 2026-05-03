@@ -12,7 +12,8 @@ export interface Article {
   likes: number
   views: number
   published: boolean
-  externalUrl?: string   // if set, article page shows this URL in an iframe
+  externalUrl?: string   // if set, opens the external URL in a new tab
+  isFullPage?: boolean   // if set, content is a full HTML doc rendered via srcdoc iframe
 }
 
 export interface Video {

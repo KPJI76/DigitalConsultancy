@@ -37,6 +37,7 @@ const emptyArticle = {
   tags: [] as string[],
   published: false,
   externalUrl: '',
+  isFullPage: false,
 }
 
 const ArticlesManager = () => {
@@ -82,6 +83,7 @@ const ArticlesManager = () => {
       tags: [...article.tags],
       published: article.published,
       externalUrl: article.externalUrl ?? '',
+      isFullPage: article.isFullPage ?? false,
     })
     setEditingId(article.id)
     setIsEditing(true)
@@ -168,6 +170,11 @@ const ArticlesManager = () => {
                 {article.externalUrl && (
                   <span className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-purple-500/20 text-purple-400">
                     <ExternalLink size={10} /> External Link
+                  </span>
+                )}
+                {article.isFullPage && (
+                  <span className="px-2 py-0.5 rounded text-xs bg-blue-500/20 text-blue-400">
+                    Full HTML Page
                   </span>
                 )}
               </div>
@@ -318,25 +325,62 @@ const ArticlesManager = () => {
             </div>
 
             {/* External Link URL */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <ExternalLink size={14} className="text-purple-400" />
-                External Link URL
-                <span className="text-white/30 font-normal text-xs">(optional — embed an external page instead of writing content)</span>
-              </Label>
-              <Input
-                value={editingArticle.externalUrl}
-                onChange={(e) => setEditingArticle({ ...editingArticle, externalUrl: e.target.value })}
-                placeholder="https://example.com/your-article"
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-purple-400"
-              />
-              {editingArticle.externalUrl && (
-                <p className="text-purple-400 text-xs">✓ Article page will display this URL in an embedded iframe with an "Open in new tab" button.</p>
-              )}
-            </div>
+            {!editingArticle.isFullPage && (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <ExternalLink size={14} className="text-purple-400" />
+                  External Link URL
+                  <span className="text-white/30 font-normal text-xs">(optional — link to an external page)</span>
+                </Label>
+                <Input
+                  value={editingArticle.externalUrl}
+                  onChange={(e) => setEditingArticle({ ...editingArticle, externalUrl: e.target.value })}
+                  placeholder="https://example.com/your-article"
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-purple-400"
+                />
+                {editingArticle.externalUrl && (
+                  <p className="text-purple-400 text-xs">✓ Clicking this article opens the URL in a new tab.</p>
+                )}
+              </div>
+            )}
 
-            {/* Content — hidden when external URL is set */}
+            {/* Article type selector — Full HTML Page toggle */}
             {!editingArticle.externalUrl && (
+              <div className="p-4 bg-blue-500/5 border border-blue-500/20 rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-white font-medium text-sm">Full HTML Page</p>
+                    <p className="text-white/40 text-xs mt-0.5">
+                      Paste a complete HTML document (with &lt;script&gt; and &lt;style&gt;). It renders exactly as-is when clicked.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setEditingArticle({ ...editingArticle, isFullPage: !editingArticle.isFullPage, content: '' })}
+                    className={`relative w-12 h-6 rounded-full transition-all ${editingArticle.isFullPage ? 'bg-blue-500' : 'bg-white/20'}`}
+                  >
+                    <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${editingArticle.isFullPage ? 'left-7' : 'left-1'}`} />
+                  </button>
+                </div>
+
+                {editingArticle.isFullPage && (
+                  <div className="space-y-2">
+                    <Label className="text-blue-300">Full HTML Content</Label>
+                    <Textarea
+                      value={editingArticle.content}
+                      onChange={(e) => setEditingArticle({ ...editingArticle, content: e.target.value })}
+                      placeholder={'<!DOCTYPE html>\n<html>\n<head><style>body { ... }</style></head>\n<body>...</body>\n</html>'}
+                      rows={12}
+                      className="bg-white/5 border-blue-500/30 text-white placeholder:text-white/20 focus:border-blue-400 font-mono text-xs"
+                    />
+                    <p className="text-blue-400/70 text-xs">Scripts and styles are preserved. Content renders in a full-screen frame when the article is opened.</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Standard content — only shown for normal articles */}
+            {!editingArticle.externalUrl && !editingArticle.isFullPage && (
               <div className="space-y-2">
                 <Label>Content (HTML)</Label>
                 <Textarea

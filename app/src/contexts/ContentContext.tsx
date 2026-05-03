@@ -348,7 +348,8 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
       }
       const newArticle: Article = {
         ...article,
-        content: sanitizeArticleHtml(article.content),
+        // Skip sanitization for full HTML pages — they need scripts/styles intact
+        content: article.isFullPage ? article.content : sanitizeArticleHtml(article.content),
         id: `article-${Date.now()}`,
         slug: uniqueSlug,
         likes: 0,
@@ -360,8 +361,9 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
   }
 
   const updateArticle = (id: string, updates: Partial<Article>) => {
+    const isFullPage = updates.isFullPage ?? content.articles.find(a => a.id === id)?.isFullPage
     const sanitizedUpdates = updates.content !== undefined
-      ? { ...updates, content: sanitizeArticleHtml(updates.content) }
+      ? { ...updates, content: isFullPage ? updates.content : sanitizeArticleHtml(updates.content) }
       : updates
     setContent(prev => ({
       ...prev,

@@ -174,7 +174,31 @@ const Article = () => {
       </div>
 
       {/* Article Content */}
-      {article.externalUrl ? (
+      {article.isFullPage ? (
+        /* Full HTML page — render via srcdoc iframe (bypasses X-Frame-Options) */
+        <div className="bg-navy">
+          <div className="flex items-center justify-between px-6 py-3 bg-white/5 border-b border-white/10">
+            <span className="text-white/50 text-sm">Rendering full HTML page</span>
+            <button
+              onClick={() => {
+                const blob = new Blob([article.content], { type: 'text/html' })
+                window.open(URL.createObjectURL(blob), '_blank')
+              }}
+              className="flex items-center gap-2 px-4 py-1.5 bg-cyan text-navy font-semibold text-sm rounded-lg hover:bg-white transition-all"
+            >
+              <ExternalLink size={14} />
+              Open in new tab
+            </button>
+          </div>
+          <iframe
+            srcDoc={article.content}
+            title={article.title}
+            className="w-full border-0"
+            style={{ height: 'calc(100vh - 80px)' }}
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+          />
+        </div>
+      ) : article.externalUrl ? (
         /* External article — show a launch card (iframes blocked by GitHub Pages) */
         <div className="py-16 bg-navy">
           <div className="max-w-2xl mx-auto px-6 lg:px-8 text-center">
